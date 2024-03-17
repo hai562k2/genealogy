@@ -1,0 +1,13 @@
+{
+  "apps": [
+    {
+      "name": "server",
+      "script": "npm run start:prod",
+      "watch": false,
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "env_file": ".env"
+    }
+  ]
+}
