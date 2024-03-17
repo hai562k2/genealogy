@@ -99,9 +99,6 @@ export class User extends EntityHelper {
   deletedAt: Date;
 
   @Column({ type: String, nullable: true })
-  describe: string | null;
-
-  @Column({ type: String, nullable: true })
   file: string;
 
   @Exclude()
