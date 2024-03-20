@@ -8,7 +8,7 @@ export class BaseEntity extends EntityHelper {
   @CreateDateColumn({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at', nullable: true, default: () => 'NULL', select: true })
+  @UpdateDateColumn({ name: 'updated_at', nullable: true, default: () => 'CURRENT_TIMESTAMP', select: true })
   updatedAt: Date;
 
   @DeleteDateColumn({ name: 'deleted_at', nullable: true, default: () => 'NULL', select: false })

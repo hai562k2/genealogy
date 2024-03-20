@@ -31,6 +31,8 @@ import { MailerModule } from './mailer/mailer.module';
 import { LoggerWinston } from './utils/logger';
 import { APP_FILTER } from '@nestjs/core';
 import { ApiExceptionFilter } from './utils/filters/api-exception.filter';
+import { ClanModule } from './clan/clan.module';
+import { EventModule } from './event/event.module';
 
 @Module({
   imports: [
@@ -90,6 +92,8 @@ import { ApiExceptionFilter } from './utils/filters/api-exception.filter';
     MailModule,
     MailerModule,
     HomeModule,
+    ClanModule,
+    EventModule,
   ],
   providers: [
     LoggerWinston,

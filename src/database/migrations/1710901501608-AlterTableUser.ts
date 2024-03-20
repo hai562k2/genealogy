@@ -26,7 +26,8 @@ export class AlterTableUser1710901501608 implements MigrationInterface {
             ADD COLUMN description VARCHAR,
             ADD COLUMN dead_day TIMESTAMP,
             ADD COLUMN lunar_dead_day TIMESTAMP,
-            ADD COLUMN patriarch INT;
+            ADD COLUMN patriarch INT,
+            ADD COLUMN clan_id BIGINT;
         `);
   }
 
