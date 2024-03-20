@@ -99,23 +99,92 @@ export class User extends EntityHelper {
   deletedAt: Date;
 
   @Column({ type: String, nullable: true })
-  file: string;
+  image: string;
 
   @Exclude()
   @Column({ insert: false, update: false, select: false })
-  files: string;
+  images: string;
+
+  @Column({ nullable: true })
+  sex: number;
+
+  @Column({ nullable: true })
+  birthday: Date;
+
+  @Column({ name: 'lunar_birthday', nullable: true })
+  lunarBirthday: Date;
+
+  @Column({ type: String, nullable: true })
+  country: string;
+
+  @Column({ type: Number, nullable: true })
+  classify: number;
+
+  @Column({ type: Number, nullable: true })
+  genus: number;
+
+  @Column({ type: String, nullable: true })
+  religion: string;
+
+  @Column({ type: String, nullable: true })
+  literacy: string;
+
+  @Column({ type: String, nullable: true })
+  phone: string;
+
+  @Column({ type: String, nullable: true })
+  job: string;
+
+  @Column({ name: 'wor_address', type: String, nullable: true })
+  workAddress: string;
+
+  @Column({ type: String, nullable: true })
+  father: number;
+
+  @Column({ name: 'father_name', type: String, nullable: true })
+  fatherName: string;
+
+  @Column({ type: String, nullable: true })
+  mother: number;
+
+  @Column({ name: 'mother_name', type: String, nullable: true })
+  motherName: string;
+
+  @Column({ type: Number, nullable: true })
+  spouse: number;
+
+  @Column({ name: 'spouse_name', type: String, nullable: true })
+  spouseName: string;
+
+  @Column({ type: String, nullable: true })
+  domicile: string;
+
+  @Column({ type: String, nullable: true })
+  resident: string;
+
+  @Column({ type: String, nullable: true })
+  description: string;
+
+  @Column({ name: 'dead_day' })
+  deadDay: Date;
+
+  @Column({ name: 'lunar_dead_day' })
+  lunarDeadDay: Date;
+
+  @Column({ type: Number, nullable: true })
+  patriarch: number;
 
   @BeforeInsert()
   @BeforeUpdate()
-  convertFile() {
-    this.file = JSON.stringify(this.files);
+  convertImage() {
+    this.image = JSON.stringify(this.images);
   }
 
   @AfterLoad()
   @AfterInsert()
   @AfterUpdate()
   convertPublishToArray() {
-    const images = getValueOrDefault(this.file, []);
-    this.file = typeof images === 'string' ? JSON.parse(images) : JSON.parse(JSON.stringify(images));
+    const images = getValueOrDefault(this.image, []);
+    this.image = typeof images === 'string' ? JSON.parse(images) : JSON.parse(JSON.stringify(images));
   }
 }

@@ -92,21 +92,18 @@ export class UsersController {
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   async update(@Req() request: Request, @Param('id') accountId: number, @Body() updateProfileDto: UpdateUserDto) {
-    const { id } = this.commonService.getAccountInformationLogin(request);
-    this.commonService.isProfileOwner(id, accountId);
-
-    let files: FileEntity[] = [];
-    if (isNotEmptyField(updateProfileDto.file)) {
-      files = await this.filesService.findAllByPath(updateProfileDto.file);
+    let images: FileEntity[] = [];
+    if (isNotEmptyField(updateProfileDto.image)) {
+      images = await this.filesService.findAllByPath(updateProfileDto.image);
     }
 
-    const updateUser = await this.usersService.editAccount(id, {
+    const updateUser = await this.usersService.editAccount(accountId, {
       ...updateProfileDto,
       ...{
-        files: files.map((file) => {
+        images: images.map((image) => {
           return {
-            path: file.path,
-            name: file.name,
+            path: image.path,
+            name: image.name,
           };
         }),
       },
