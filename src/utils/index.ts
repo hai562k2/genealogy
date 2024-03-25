@@ -4,6 +4,16 @@ export const getValueOrDefault = <T>(value: any, defaultValue: T): T => {
   return value !== null && value !== undefined ? (value as T) : defaultValue;
 };
 
+export const isOwner = (roleCd?: number | null) => {
+  return !!(roleCd && [AppConstant.ROLE_OWNER].includes(roleCd));
+};
+export const isAdminOrOwner = (roleCd?: number | null) => {
+  return !!(roleCd && [AppConstant.ROLE_OWNER, AppConstant.ROLE_ADMIN].includes(roleCd));
+};
+export const isMember = (roleCd?: number | null) => {
+  return !!(roleCd && [AppConstant.ROLE_OWNER, AppConstant.ROLE_ADMIN, AppConstant.ROLE_LABORER].includes(roleCd));
+};
+
 export const toFullName = (socialData: any) => {
   const { firstName, lastName } = socialData || {};
   const fullName = [firstName, lastName].filter(Boolean).join('');
@@ -41,16 +51,4 @@ export const getInformationDate = (date: Date) => {
     month,
     day,
   };
-};
-
-export const getTitle = (content: string): string => {
-  const normalizedContent = content.replace(/\r\n|\r/g, '\n').trim();
-  const nonEmptyLines = normalizedContent.split('\n').filter((line) => line.trim() !== '');
-  const paragraph = nonEmptyLines[0] ?? '';
-
-  const regex = new RegExp(AppConstant.SPLIT_CHARACTERS);
-  const match = regex.exec(paragraph);
-
-  const title = paragraph.slice(0, getValueOrDefault(match?.index, paragraph.length) + 1);
-  return title;
 };
