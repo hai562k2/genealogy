@@ -12,6 +12,8 @@ import { EntityCondition } from 'src/utils/types/entity-condition.type';
 import { ApiException } from 'src/utils/exceptions/api.exception';
 import { ErrorCodeEnum } from 'src/utils/error-code.enum';
 import { ListClanResponseType } from './types/list-clan-reponse.type';
+import { isNotEmptyField, isOwner } from 'src/utils';
+import { MemberService } from './member.service';
 
 @Injectable()
 export class ClanService {
@@ -19,6 +21,7 @@ export class ClanService {
     @InjectRepository(Clan)
     private clanRepository: Repository<Clan>,
     private commonService: CommonService,
+    private membersService: MemberService,
   ) {}
 
   async create(createClanDto: CreateClanDto): Promise<BaseResponseDto<Clan>> {
@@ -85,5 +88,56 @@ export class ClanService {
 
   async softDelete(id: Clan['id']): Promise<void> {
     await this.clanRepository.softDelete(id);
+  }
+
+  validateUserAndClanIdNotNull(userId: number, clanId: number) {
+    if (!isNotEmptyField(userId, true) || !isNotEmptyField(clanId, true)) {
+      throw new ApiException(
+        {
+          id: ErrorCodeEnum.MEMBER_NOT_PERMISSION,
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+  }
+
+  async validateMember(userId: number, clanId: number): Promise<void> {
+    this.validateUserAndClanIdNotNull(userId, clanId);
+
+    const member = await this.membersService.findOne({
+      clanId: clanId,
+      userId: userId,
+    });
+
+    if (!member) {
+      throw new ApiException(
+        {
+          id: ErrorCodeEnum.MEMBER_NOT_PERMISSION,
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+  }
+
+  async validateRoleOwnerOrCreatedBy(userId: number, clanId: number, createdBy: number): Promise<boolean> {
+    this.validateUserAndClanIdNotNull(userId, clanId);
+
+    const member = await this.membersService.findOne({
+      clanId: clanId,
+      userId: userId,
+    });
+
+    const owner = isOwner(member?.data?.roleCd);
+
+    if (owner || userId === createdBy) {
+      return true;
+    } else {
+      throw new ApiException(
+        {
+          id: ErrorCodeEnum.MEMBER_NOT_PERMISSION,
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
   }
 }

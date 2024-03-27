@@ -12,6 +12,8 @@ import {
   BeforeUpdate,
   AfterInsert,
   AfterUpdate,
+  OneToMany,
+  OneToOne,
 } from 'typeorm';
 import { Role } from '../../roles/entities/role.entity';
 import { Status } from '../../statuses/entities/status.entity';
@@ -20,6 +22,8 @@ import { EntityHelper } from 'src/utils/entity-helper';
 import { AuthProvidersEnum } from 'src/auth/auth-providers.enum';
 import { Exclude, Expose } from 'class-transformer';
 import { getValueOrDefault } from 'src/utils';
+import { Member } from 'src/clan/entities/member.entity';
+import { EventEntity } from 'src/event/entites/event.entity';
 
 @Entity()
 export class User extends EntityHelper {
@@ -187,4 +191,17 @@ export class User extends EntityHelper {
     const images = getValueOrDefault(this.image, []);
     this.image = typeof images === 'string' ? JSON.parse(images) : JSON.parse(JSON.stringify(images));
   }
+
+  @OneToMany((_type) => Member, (member) => member.members, {
+    eager: false,
+    onDelete: 'CASCADE',
+  })
+  @Expose({ groups: ['login'] })
+  members: Member;
+
+  @Expose({ groups: ['login'] })
+  @OneToOne((_type) => EventEntity, (event) => event.user, {
+    eager: false,
+  })
+  event: EventEntity;
 }
