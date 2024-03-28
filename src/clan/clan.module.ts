@@ -13,11 +13,12 @@ import { Pay } from './entities/pay.entity';
 import { CollectMoneyService } from './collect-money.service';
 import { User } from 'src/users/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
+import { PayService } from './pay.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Clan, Member, FileEntity, CollectMoney, Pay, User]), ShareModule],
-  providers: [ClanService, MemberService, FilesService, CollectMoneyService, UsersService],
+  providers: [ClanService, MemberService, FilesService, CollectMoneyService, UsersService, PayService],
   controllers: [ClanController],
-  exports: [ClanService, MemberService, FilesService, CollectMoneyService, UsersService],
+  exports: [ClanService, MemberService, FilesService, CollectMoneyService, UsersService, PayService],
 })
 export class ClanModule {}

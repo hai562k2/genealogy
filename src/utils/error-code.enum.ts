@@ -37,5 +37,6 @@ export enum ErrorCodeEnum {
   'USER_ID_NOT_FOUND' = 'EA0036',
   'TIME_EVENT_REQUIRED' = 'EA0037',
   'TIME_EVENT_IS_DATE' = 'EA0038',
+  'PAY_NOT_FOUND' = 'EA0039',
   'SYSTEM_ERROR' = 'EA9999',
 }

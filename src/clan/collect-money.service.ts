@@ -63,7 +63,7 @@ export class CollectMoneyService {
   }
 
   async findOne(fields: EntityCondition<CollectMoney>): Promise<BaseResponseDto<CreateCollectMoneyResponseType>> {
-    const queryCollectMoney = this.collectMoneyRepository.createQueryBuilder('collectMoney');
+    const queryCollectMoney = this.collectMoneyRepository.createQueryBuilder('collectMoney').where(fields);
     queryCollectMoney.leftJoinAndSelect('collectMoney.clan', 'clan');
 
     const collectMoney = await queryCollectMoney.getOne();
