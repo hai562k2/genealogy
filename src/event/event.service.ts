@@ -1,8 +1,8 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EventEntity } from './entites/event.entity';
+import { EventEntity } from './entities/event.entity';
 import { Repository } from 'typeorm';
-import { EventComment } from './entites/event.comment.entity';
+import { EventComment } from './entities/event-comment.entity';
 import { CreateEventDto } from './dto/create-event.dto';
 import { CreateEventResponseType } from './types/create-event-response.type';
 import { BaseResponseDto } from 'src/utils/dto/base-response.dto';
