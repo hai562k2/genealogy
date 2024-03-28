@@ -6,6 +6,7 @@ export class CreateMemberDto {
   @ApiProperty({ example: 1 })
   @ValidationDecorator([
     { rule: 'required', params: { validationOptions: { message: ErrorCodeEnum.CLAN_ID_REQUIRED } } },
+    { rule: 'int', params: { validationOptions: { message: ErrorCodeEnum.CLAN_ID_IS_INT } } },
   ])
   clanId: number;
 

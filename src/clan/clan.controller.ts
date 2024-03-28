@@ -19,7 +19,7 @@ import { RoleEnum } from 'src/roles/roles.enum';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from 'src/roles/roles.guard';
 import { Roles } from 'src/roles/roles.decorator';
-import { CreateClanDto } from './dto/create-clanDto';
+import { CreateClanDto } from './dto/create-clan.dto';
 import { BaseResponseDto } from 'src/utils/dto/base-response.dto';
 import { CreateClanResponseType } from './types/create-clan-response.type';
 import { FileEntity } from 'src/files/entities/file.entity';
@@ -35,23 +35,31 @@ import { MemberService } from './member.service';
 import { ApiException } from 'src/utils/exceptions/api.exception';
 import { ErrorCodeEnum } from 'src/utils/error-code.enum';
 import { AppConstant } from 'src/utils/app.constant';
+import { CreateCollectMoneyDto } from './dto/create-collect-money.dto';
+import { CreateCollectMoneyResponseType } from './types/create-collect-money.type';
+import { CollectMoneyService } from './collect-money.service';
+import { UsersService } from 'src/users/users.service';
+import { UpdateCollectMoneyDto } from './dto/update-collect-money.dto';
+import { FilterCollectMoneyDto } from './dto/filter-collect-money.dto';
 
 @ApiTags('Clan')
 @Controller({
   path: 'clan',
   version: '1',
 })
+@UseGuards(AuthGuard('jwt'), RolesGuard)
 export class ClanController {
   constructor(
     private readonly clanService: ClanService,
     private readonly filesService: FilesService,
     private readonly commonService: CommonService,
     private readonly membersService: MemberService,
+    private readonly collectMoneyService: CollectMoneyService,
+    private readonly usersService: UsersService,
   ) {}
 
   @ApiCookieAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @SerializeOptions({
     groups: ['admin'],
   })
@@ -95,7 +103,31 @@ export class ClanController {
 
   @ApiCookieAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @SerializeOptions({
+    groups: ['admin'],
+  })
+  @Get('collect-money')
+  @HttpCode(HttpStatus.OK)
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'keyword', required: false, type: String })
+  @ApiQuery({ name: 'id', required: false, type: Number })
+  @ApiQuery({ name: 'clanId', required: false, type: Number })
+  @ApiQuery({ name: 'userId', required: false, type: Number })
+  @ApiQuery({ name: 'description', required: false, type: Number })
+  findAllCollectMoney(
+    @Query() paginationDto: FilterCollectMoneyDto,
+    @Req() request: Request,
+  ): Promise<BaseResponseDto<ListClanResponseType>> {
+    paginationDto.page = Number(paginationDto.page);
+    paginationDto.limit = Number(paginationDto.limit);
+    const account = this.commonService.getAccountInformationLogin(request);
+
+    return this.collectMoneyService.findManyWithPagination(paginationDto, account.id);
+  }
+
+  @ApiCookieAuth()
+  @Roles(RoleEnum.admin, RoleEnum.user)
   @SerializeOptions({
     groups: ['admin'],
   })
@@ -114,7 +146,6 @@ export class ClanController {
 
   @ApiCookieAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @SerializeOptions({
     groups: ['detail'],
   })
@@ -126,7 +157,6 @@ export class ClanController {
 
   @ApiCookieAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @SerializeOptions({
     groups: ['admin'],
   })
@@ -141,7 +171,6 @@ export class ClanController {
 
   @ApiCookieAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Delete(':id/members/:member_id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async removeMembersByOrganization(
@@ -190,7 +219,6 @@ export class ClanController {
 
   @ApiCookieAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: number): Promise<void> {
@@ -199,7 +227,6 @@ export class ClanController {
 
   @ApiCookieAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @SerializeOptions({
     groups: ['admin'],
   })
@@ -272,5 +299,63 @@ export class ClanController {
     }
 
     return memberChangeOwner;
+  }
+
+  @ApiCookieAuth()
+  @Roles(RoleEnum.admin, RoleEnum.user)
+  @HttpCode(HttpStatus.CREATED)
+  @Post('collect-money')
+  async createCollectMoney(
+    @Body() createCollectMoney: CreateCollectMoneyDto,
+    @Req() request: Request,
+  ): Promise<BaseResponseDto<CreateCollectMoneyResponseType>> {
+    const account = this.commonService.getAccountInformationLogin(request);
+    await this.clanService.validateRoleMember(account.id, createCollectMoney.clanId);
+    await this.clanService.findOne({ id: createCollectMoney.clanId });
+    const user = await this.usersService.findOne({ id: createCollectMoney.userId });
+    if (!user) {
+      throw new ApiException(
+        {
+          userId: ErrorCodeEnum.USER_ID_NOT_FOUND,
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+
+    const collectMoney = await this.collectMoneyService.create({
+      ...createCollectMoney,
+      ...{ createdBy: account.id },
+    });
+    return collectMoney;
+  }
+
+  @ApiCookieAuth()
+  @Roles(RoleEnum.admin, RoleEnum.user)
+  @HttpCode(HttpStatus.OK)
+  @Patch('collect-money/:collectMoneyId')
+  async updateCollectMoney(
+    @Param('collectMoneyId') collectMoneyId: number,
+    @Body() updateCollectMoneyDto: UpdateCollectMoneyDto,
+  ): Promise<BaseResponseDto<CreateCollectMoneyResponseType>> {
+    return await this.collectMoneyService.update(collectMoneyId, {
+      ...updateCollectMoneyDto,
+    });
+  }
+
+  @ApiCookieAuth()
+  @Roles(RoleEnum.admin, RoleEnum.user)
+  @HttpCode(HttpStatus.OK)
+  @Get('collect-money/total-money/:clanId')
+  async totalMoney(@Param('clanId') clanId: number): Promise<BaseResponseDto<number>> {
+    await this.clanService.findOne({ id: clanId });
+    return await this.collectMoneyService.totalCollectMoney(clanId);
+  }
+
+  @ApiCookieAuth()
+  @Roles(RoleEnum.admin, RoleEnum.user)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete('collect-money/:collectId')
+  async removeCollectMoney(@Param('collectId') collectId: number): Promise<void> {
+    await this.collectMoneyService.softDelete(collectId);
   }
 }

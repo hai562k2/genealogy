@@ -2,7 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Clan } from './entities/clan.entity';
 import { DeepPartial, Repository } from 'typeorm';
-import { CreateClanDto } from './dto/create-clanDto';
+import { CreateClanDto } from './dto/create-clan.dto';
 import { BaseResponseDto } from 'src/utils/dto/base-response.dto';
 import { ResponseHelper } from 'src/utils/helpers/response.helper';
 import { FilterClanDto } from './dto/filter-clan.dto';
@@ -12,7 +12,7 @@ import { EntityCondition } from 'src/utils/types/entity-condition.type';
 import { ApiException } from 'src/utils/exceptions/api.exception';
 import { ErrorCodeEnum } from 'src/utils/error-code.enum';
 import { ListClanResponseType } from './types/list-clan-reponse.type';
-import { isNotEmptyField, isOwner } from 'src/utils';
+import { isAdminOrOwner, isNotEmptyField, isOwner } from 'src/utils';
 import { MemberService } from './member.service';
 
 @Injectable()
@@ -132,6 +132,24 @@ export class ClanService {
     if (owner || userId === createdBy) {
       return true;
     } else {
+      throw new ApiException(
+        {
+          id: ErrorCodeEnum.MEMBER_NOT_PERMISSION,
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+  }
+
+  async validateRoleMember(userId: number, clanId: number): Promise<void> {
+    this.validateUserAndClanIdNotNull(userId, clanId);
+
+    const member = await this.membersService.findOne({
+      clanId: clanId,
+      userId: userId,
+    });
+
+    if (!isAdminOrOwner(member?.data?.roleCd)) {
       throw new ApiException(
         {
           id: ErrorCodeEnum.MEMBER_NOT_PERMISSION,

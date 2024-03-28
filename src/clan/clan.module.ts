@@ -8,11 +8,16 @@ import { MemberService } from './member.service';
 import { ShareModule } from 'src/utils/share.module';
 import { FilesService } from 'src/files/files.service';
 import { FileEntity } from 'src/files/entities/file.entity';
+import { CollectMoney } from './entities/collect-money.entity';
+import { Pay } from './entities/pay.entity';
+import { CollectMoneyService } from './collect-money.service';
+import { User } from 'src/users/entities/user.entity';
+import { UsersService } from 'src/users/users.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Clan, Member, FileEntity]), ShareModule],
-  providers: [ClanService, MemberService, FilesService],
+  imports: [TypeOrmModule.forFeature([Clan, Member, FileEntity, CollectMoney, Pay, User]), ShareModule],
+  providers: [ClanService, MemberService, FilesService, CollectMoneyService, UsersService],
   controllers: [ClanController],
-  exports: [ClanService, MemberService, FilesService],
+  exports: [ClanService, MemberService, FilesService, CollectMoneyService, UsersService],
 })
 export class ClanModule {}
