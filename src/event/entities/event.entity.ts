@@ -12,7 +12,7 @@ import {
   OneToMany,
   OneToOne,
 } from 'typeorm';
-import { EventComment } from './event.comment.entity';
+import { EventComment } from './event-comment.entity';
 import { Clan } from 'src/clan/entities/clan.entity';
 import { User } from 'src/users/entities/user.entity';
 

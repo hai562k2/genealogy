@@ -23,7 +23,7 @@ import { AuthProvidersEnum } from 'src/auth/auth-providers.enum';
 import { Exclude, Expose } from 'class-transformer';
 import { getValueOrDefault } from 'src/utils';
 import { Member } from 'src/clan/entities/member.entity';
-import { EventEntity } from 'src/event/entites/event.entity';
+import { EventEntity } from 'src/event/entities/event.entity';
 
 @Entity()
 export class User extends EntityHelper {

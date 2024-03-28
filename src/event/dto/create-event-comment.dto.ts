@@ -8,7 +8,7 @@ export class CreateEventCommentDto {
     { rule: 'required', params: { validationOptions: { message: ErrorCodeEnum.EVENT_ID_REQUIRED } } },
     { rule: 'int', params: { validationOptions: { message: ErrorCodeEnum.EVENT_ID_IS_INT } } },
   ])
-  clanId: number;
+  eventId: number;
 
   @ApiProperty({ type: [] })
   @ValidationDecorator([{ rule: 'optional' }])

@@ -14,6 +14,8 @@ import { ApiTags } from '@nestjs/swagger';
 import { FilterEventDto } from './dto/filter-event.dto';
 import { ListEventResponseType } from './types/list-event-response.type';
 import { UpdateEventDto } from './dto/upate-event.dto';
+import { CreateEventCommentResponseType } from './types/create-event-comment-response.type';
+import { CreateEventCommentDto } from './dto/create-event-comment.dto';
 
 @ApiTags('Event')
 @Controller({
@@ -129,5 +131,37 @@ export class EventController {
     );
 
     await this.eventService.softDelete(id);
+  }
+
+  @Post('comment')
+  @HttpCode(HttpStatus.CREATED)
+  async createEventComment(
+    @Body() createEventCommentDto: CreateEventCommentDto,
+    @Req() request: Request,
+  ): Promise<BaseResponseDto<CreateEventCommentResponseType>> {
+    const account = this.commonService.getAccountInformationLogin(request);
+    const event = await this.eventService.findOne({ id: createEventCommentDto.eventId });
+
+    await this.clanService.validateMember(account.id, getValueOrDefault(event.data?.clanId, 0));
+
+    let images: FileEntity[] = [];
+    if (isNotEmptyField(createEventCommentDto.image)) {
+      images = await this.filesService.findAllByPath(createEventCommentDto.image);
+    }
+
+    const eventComment = await this.eventCommentService.create({
+      ...createEventCommentDto,
+      ...{ createdBy: account.id },
+      ...{
+        images: images.map((image) => {
+          return {
+            path: image.path,
+            name: image.name,
+          };
+        }),
+      },
+    });
+
+    return eventComment;
   }
 }

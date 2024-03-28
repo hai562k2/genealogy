@@ -1,5 +1,5 @@
 import { Exclude, Expose } from 'class-transformer';
-import { EventEntity } from 'src/event/entites/event.entity';
+import { EventEntity } from 'src/event/entities/event.entity';
 import { BaseEntity } from 'src/utils/entity/base.entity';
 import {
   AfterInsert,
