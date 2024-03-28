@@ -1,6 +1,18 @@
 import { Exclude, Expose } from 'class-transformer';
+import { EventEntity } from 'src/event/entites/event.entity';
 import { BaseEntity } from 'src/utils/entity/base.entity';
-import { AfterInsert, AfterLoad, AfterUpdate, BeforeInsert, BeforeUpdate, Column, Entity } from 'typeorm';
+import {
+  AfterInsert,
+  AfterLoad,
+  AfterUpdate,
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
+import { Member } from './member.entity';
 
 @Entity({ name: 'clan' })
 export class Clan extends BaseEntity {
@@ -23,6 +35,18 @@ export class Clan extends BaseEntity {
   @Exclude()
   @Column({ insert: false, update: false, select: false })
   images: string;
+
+  @OneToOne((_type) => EventEntity, (event) => event.clan, {
+    lazy: true,
+  })
+  event: Clan;
+
+  @Expose({ groups: ['admin'] })
+  @OneToMany((_type) => Member, (member) => member.clan, {
+    lazy: true,
+    onDelete: 'CASCADE',
+  })
+  members: Member;
 
   @BeforeInsert()
   @BeforeUpdate()
