@@ -13,6 +13,8 @@ import {
   OneToOne,
 } from 'typeorm';
 import { Member } from './member.entity';
+import { CollectMoney } from './collect-money.entity';
+import { Pay } from './pay.entity';
 
 @Entity({ name: 'clan' })
 export class Clan extends BaseEntity {
@@ -41,12 +43,23 @@ export class Clan extends BaseEntity {
   })
   event: Clan;
 
-  @Expose({ groups: ['admin'] })
   @OneToMany((_type) => Member, (member) => member.clan, {
     lazy: true,
     onDelete: 'CASCADE',
   })
   members: Member;
+
+  @OneToMany((_type) => CollectMoney, (collectMoney) => collectMoney.clan, {
+    lazy: true,
+    onDelete: 'CASCADE',
+  })
+  collectMoneys: CollectMoney;
+
+  @OneToMany((_type) => Pay, (pay) => pay.clan, {
+    lazy: true,
+    onDelete: 'CASCADE',
+  })
+  pays: Pay;
 
   @BeforeInsert()
   @BeforeUpdate()

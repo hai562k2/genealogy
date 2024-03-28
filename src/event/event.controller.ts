@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Param, Patch, Post, Req, Get, Delete } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Param, Patch, Post, Req, Get, Delete, Query } from '@nestjs/common';
 import { EventCommentService } from './event-comment.service';
 import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
@@ -10,7 +10,7 @@ import { ClanService } from 'src/clan/clan.service';
 import { FileEntity } from 'src/files/entities/file.entity';
 import { getValueOrDefault, isNotEmptyField } from 'src/utils';
 import { FilesService } from 'src/files/files.service';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { FilterEventDto } from './dto/filter-event.dto';
 import { ListEventResponseType } from './types/list-event-response.type';
 import { UpdateEventDto } from './dto/upate-event.dto';
@@ -62,10 +62,13 @@ export class EventController {
     return eventCreate;
   }
 
-  @Post('list')
+  @Get('list')
   @HttpCode(HttpStatus.OK)
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'clanId', required: false, type: Number })
   findAll(
-    @Body() paginationDto: FilterEventDto,
+    @Query() paginationDto: FilterEventDto,
     @Req() request: Request,
   ): Promise<BaseResponseDto<ListEventResponseType>> {
     const account = this.commonService.getAccountInformationLogin(request);

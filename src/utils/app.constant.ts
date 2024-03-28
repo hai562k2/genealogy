@@ -18,12 +18,11 @@ export class AppConstant {
   public static TYPE_DOCUMENT = 1;
   public static TYPE_QUESTION = 2;
   public static TYPE_FEEDBACK = 3;
-  public static FORMAT_DATE = 'YYYY/MM/DD';
+  public static FORMAT_DATE = 'YYYY-MM-DD HH:mm';
   public static STEM_DEFAULT = 3;
   public static YEAR_CIRCLE_LENGTH = 60;
   public static UNIT_CONVERSION = 100;
   public static PLANTING_DENSITY = 10;
-  public static FORMAT_DATE_MONTH_YEAR = 'YYYY/MM';
   public static AREA_QUANTITY_DEFAULT = 4;
   public static NO_LOGIN = 0;
   public static LOGGED = 1;

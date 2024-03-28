@@ -37,24 +37,17 @@ export class EventService {
       userId,
     });
 
-    const conditions = [
-      { field: 'keyword', column: 'Event.content', like: true },
-      { field: 'id', column: 'Event.id' },
-      { field: 'clanId', column: 'Event.clan_id' },
-      { field: 'createdBy', column: 'Event.created_by' },
-    ];
-    conditions.forEach(({ field, column }) => {
-      if (paginationDto[field]) {
-        const queryCondition = this.commonService.generateQueryBuilderFilter(
-          paginationDto[field],
-          column.split('.')[0],
-          column.split('.')[1],
-        );
-        if (queryCondition.queryString && queryCondition.parameters) {
-          queryEvent.andWhere(queryCondition.queryString, queryCondition.parameters);
-        }
-      }
-    });
+    if (paginationDto.keyword) {
+      queryEvent.where('LOWER(Event.content) LIKE :keyword', {
+        keyword: `%${paginationDto.keyword.toString().toLowerCase()}%`,
+      });
+    }
+
+    if (paginationDto.clanId) {
+      queryEvent.andWhere('Clan.id = :clanId', {
+        clanId: paginationDto.clanId,
+      });
+    }
 
     return this.commonService.getDataByPagination(paginationDto, queryEvent);
   }

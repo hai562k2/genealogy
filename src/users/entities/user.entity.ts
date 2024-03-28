@@ -24,6 +24,7 @@ import { Exclude, Expose } from 'class-transformer';
 import { getValueOrDefault } from 'src/utils';
 import { Member } from 'src/clan/entities/member.entity';
 import { EventEntity } from 'src/event/entities/event.entity';
+import { CollectMoney } from 'src/clan/entities/collect-money.entity';
 
 @Entity()
 export class User extends EntityHelper {
@@ -204,4 +205,7 @@ export class User extends EntityHelper {
     eager: false,
   })
   event: EventEntity;
+
+  @OneToOne(() => CollectMoney, (collectMoney) => collectMoney.user)
+  collectMoney: CollectMoney;
 }

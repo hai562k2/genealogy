@@ -27,7 +27,7 @@ export class EventEntity extends BaseEntity {
   @Column()
   content: string;
 
-  @Column({ name: 'time_event' })
+  @Column({ name: 'time_event', type: 'timestamp' })
   timeEvent: Date;
 
   @Column({ type: String, nullable: true })
