@@ -114,7 +114,7 @@ export class ClanController {
   @ApiQuery({ name: 'id', required: false, type: Number })
   @ApiQuery({ name: 'clanId', required: false, type: Number })
   @ApiQuery({ name: 'userId', required: false, type: Number })
-  @ApiQuery({ name: 'description', required: false, type: Number })
+  @ApiQuery({ name: 'description', required: false, type: String })
   findAllCollectMoney(
     @Query() paginationDto: FilterCollectMoneyDto,
     @Req() request: Request,
