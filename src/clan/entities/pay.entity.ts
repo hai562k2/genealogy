@@ -4,9 +4,6 @@ import { Clan } from './clan.entity';
 
 @Entity({ name: 'pay' })
 export class Pay extends BaseEntity {
-  @Column({ name: 'user_id' })
-  userId: number;
-
   @Column({ name: 'clan_id' })
   clanId: number;
 
