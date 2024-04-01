@@ -23,7 +23,7 @@ import { CreateClanDto } from './dto/create-clan.dto';
 import { BaseResponseDto } from 'src/utils/dto/base-response.dto';
 import { CreateClanResponseType } from './types/create-clan-response.type';
 import { FileEntity } from 'src/files/entities/file.entity';
-import { isAdminOrOwner, isNotEmptyField, isOwner } from 'src/utils';
+import { getValueOrDefault, isAdminOrOwner, isNotEmptyField, isOwner } from 'src/utils';
 import { FilesService } from 'src/files/files.service';
 import { CommonService } from 'src/utils/services/common.service';
 import { Request } from 'express';
@@ -41,6 +41,12 @@ import { CollectMoneyService } from './collect-money.service';
 import { UsersService } from 'src/users/users.service';
 import { UpdateCollectMoneyDto } from './dto/update-collect-money.dto';
 import { FilterCollectMoneyDto } from './dto/filter-collect-money.dto';
+import { FilterPayDto } from './dto/filter-pay.dto';
+import { PayService } from './pay.service';
+import { CreatePayDto } from './dto/create-pay.dto';
+import { CreatePayResponseType } from './types/create-pay-response.type';
+import { UpdatePayDto } from './dto/update-pay.dto';
+import { ResponseHelper } from 'src/utils/helpers/response.helper';
 
 @ApiTags('Clan')
 @Controller({
@@ -56,6 +62,7 @@ export class ClanController {
     private readonly membersService: MemberService,
     private readonly collectMoneyService: CollectMoneyService,
     private readonly usersService: UsersService,
+    private readonly payService: PayService,
   ) {}
 
   @ApiCookieAuth()
@@ -124,6 +131,19 @@ export class ClanController {
     const account = this.commonService.getAccountInformationLogin(request);
 
     return this.collectMoneyService.findManyWithPagination(paginationDto, account.id);
+  }
+
+  @ApiCookieAuth()
+  @Roles(RoleEnum.admin, RoleEnum.user)
+  @SerializeOptions({
+    groups: ['detail'],
+  })
+  @Get('collect-money/:collectId')
+  @HttpCode(HttpStatus.OK)
+  async findOneCollectMoney(
+    @Param('collectId') collectId: number,
+  ): Promise<BaseResponseDto<CreateCollectMoneyResponseType>> {
+    return await this.collectMoneyService.findOne({ id: collectId });
   }
 
   @ApiCookieAuth()
@@ -336,7 +356,11 @@ export class ClanController {
   async updateCollectMoney(
     @Param('collectMoneyId') collectMoneyId: number,
     @Body() updateCollectMoneyDto: UpdateCollectMoneyDto,
+    @Req() request: Request,
   ): Promise<BaseResponseDto<CreateCollectMoneyResponseType>> {
+    const account = this.commonService.getAccountInformationLogin(request);
+    const collectMoney = await this.collectMoneyService.findOne({ id: collectMoneyId });
+    await this.clanService.validateRoleMember(account.id, getValueOrDefault(collectMoney.data?.clanId, 0));
     return await this.collectMoneyService.update(collectMoneyId, {
       ...updateCollectMoneyDto,
     });
@@ -348,7 +372,9 @@ export class ClanController {
   @Get('collect-money/total-money/:clanId')
   async totalMoney(@Param('clanId') clanId: number): Promise<BaseResponseDto<number>> {
     await this.clanService.findOne({ id: clanId });
-    return await this.collectMoneyService.totalCollectMoney(clanId);
+    const collectMoney = await this.collectMoneyService.totalCollectMoney(clanId);
+    const payMoney = await this.payService.getTotalPay(clanId);
+    return ResponseHelper.success(collectMoney - payMoney);
   }
 
   @ApiCookieAuth()
@@ -357,5 +383,114 @@ export class ClanController {
   @Delete('collect-money/:collectId')
   async removeCollectMoney(@Param('collectId') collectId: number): Promise<void> {
     await this.collectMoneyService.softDelete(collectId);
+  }
+
+  @ApiCookieAuth()
+  @Roles(RoleEnum.admin, RoleEnum.user)
+  @SerializeOptions({
+    groups: ['admin'],
+  })
+  @Get('pay/list')
+  @HttpCode(HttpStatus.OK)
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'keyword', required: false, type: String })
+  @ApiQuery({ name: 'id', required: false, type: Number })
+  @ApiQuery({ name: 'clanId', required: false, type: Number })
+  findAllPay(
+    @Query() paginationDto: FilterPayDto,
+    @Req() request: Request,
+  ): Promise<BaseResponseDto<ListClanResponseType>> {
+    paginationDto.page = Number(paginationDto.page);
+    paginationDto.limit = Number(paginationDto.limit);
+    const account = this.commonService.getAccountInformationLogin(request);
+
+    return this.payService.findManyWithPagination(paginationDto, account.id);
+  }
+
+  @ApiCookieAuth()
+  @Roles(RoleEnum.admin, RoleEnum.user)
+  @HttpCode(HttpStatus.CREATED)
+  @Post('pay')
+  async createPay(
+    @Body() createPayDto: CreatePayDto,
+    @Req() request: Request,
+  ): Promise<BaseResponseDto<CreatePayResponseType>> {
+    const account = this.commonService.getAccountInformationLogin(request);
+    await this.clanService.validateRoleMember(account.id, createPayDto.clanId);
+    const clan = await this.clanService.findOne({ id: createPayDto.clanId });
+    const totalCollectMoney = await this.collectMoneyService.totalCollectMoney(getValueOrDefault(clan.data?.id, 0));
+    const totalPayMoneyAfterInsert =
+      (await this.payService.getTotalPay(getValueOrDefault(clan.data?.id, 0))) + createPayDto.money;
+    if (totalCollectMoney - totalPayMoneyAfterInsert < 0) {
+      throw new ApiException(
+        {
+          money: ErrorCodeEnum.MONEY_NOT_ENOUGH,
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+        { createPayDto },
+      );
+    }
+
+    const collect = await this.payService.create({
+      ...createPayDto,
+      ...{ createdBy: account.id },
+    });
+    return collect;
+  }
+
+  @ApiCookieAuth()
+  @Roles(RoleEnum.admin, RoleEnum.user)
+  @HttpCode(HttpStatus.OK)
+  @Patch('pay/:payId')
+  async updatePay(
+    @Param('payId') payId: number,
+    @Body() updatePayDto: UpdatePayDto,
+    @Req() request: Request,
+  ): Promise<BaseResponseDto<CreatePayResponseType>> {
+    const account = this.commonService.getAccountInformationLogin(request);
+    const pay = await this.payService.findOne({ id: payId });
+    await this.clanService.validateRoleMember(account.id, getValueOrDefault(pay.data?.clanId, 0));
+
+    await this.clanService.findOne({ id: pay.data?.clanId });
+    if (updatePayDto.money) {
+      const totalCollectMoney = await this.collectMoneyService.totalCollectMoney(getValueOrDefault(pay.data?.id, 0));
+      const totalPayMoneyAfterInsert =
+        (await this.payService.getTotalPay(getValueOrDefault(pay.data?.id, 0))) -
+        getValueOrDefault(pay.data?.money, 0) +
+        updatePayDto.money;
+      if (totalCollectMoney - totalPayMoneyAfterInsert < 0) {
+        throw new ApiException(
+          {
+            money: ErrorCodeEnum.MONEY_NOT_ENOUGH,
+          },
+          HttpStatus.UNPROCESSABLE_ENTITY,
+          { updatePayDto },
+        );
+      }
+    }
+
+    return await this.payService.update(payId, {
+      ...updatePayDto,
+    });
+  }
+
+  @ApiCookieAuth()
+  @Roles(RoleEnum.admin, RoleEnum.user)
+  @SerializeOptions({
+    groups: ['detail'],
+  })
+  @Get('pay/:payId')
+  @HttpCode(HttpStatus.OK)
+  async findOnePay(@Param('payId') payId: number): Promise<BaseResponseDto<CreatePayResponseType>> {
+    return await this.payService.findOne({ id: payId });
+  }
+
+  @ApiCookieAuth()
+  @Roles(RoleEnum.admin, RoleEnum.user)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete('pay/:payId')
+  async removePay(@Param('payId') payId: number): Promise<void> {
+    await this.payService.softDelete(payId);
   }
 }
