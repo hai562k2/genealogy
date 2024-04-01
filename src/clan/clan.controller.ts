@@ -46,6 +46,7 @@ import { PayService } from './pay.service';
 import { CreatePayDto } from './dto/create-pay.dto';
 import { CreatePayResponseType } from './types/create-pay-response.type';
 import { UpdatePayDto } from './dto/update-pay.dto';
+import { ResponseHelper } from 'src/utils/helpers/response.helper';
 
 @ApiTags('Clan')
 @Controller({
@@ -371,7 +372,9 @@ export class ClanController {
   @Get('collect-money/total-money/:clanId')
   async totalMoney(@Param('clanId') clanId: number): Promise<BaseResponseDto<number>> {
     await this.clanService.findOne({ id: clanId });
-    return await this.collectMoneyService.totalCollectMoney(clanId);
+    const collectMoney = await this.collectMoneyService.totalCollectMoney(clanId);
+    const payMoney = await this.payService.getTotalPay(clanId);
+    return ResponseHelper.success(collectMoney - payMoney);
   }
 
   @ApiCookieAuth()
@@ -415,7 +418,19 @@ export class ClanController {
   ): Promise<BaseResponseDto<CreatePayResponseType>> {
     const account = this.commonService.getAccountInformationLogin(request);
     await this.clanService.validateRoleMember(account.id, createPayDto.clanId);
-    await this.clanService.findOne({ id: createPayDto.clanId });
+    const clan = await this.clanService.findOne({ id: createPayDto.clanId });
+    const totalCollectMoney = await this.collectMoneyService.totalCollectMoney(getValueOrDefault(clan.data?.id, 0));
+    const totalPayMoneyAfterInsert =
+      (await this.payService.getTotalPay(getValueOrDefault(clan.data?.id, 0))) + createPayDto.money;
+    if (totalCollectMoney - totalPayMoneyAfterInsert < 0) {
+      throw new ApiException(
+        {
+          money: ErrorCodeEnum.MONEY_NOT_ENOUGH,
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+        { createPayDto },
+      );
+    }
 
     const collect = await this.payService.create({
       ...createPayDto,
@@ -436,6 +451,25 @@ export class ClanController {
     const account = this.commonService.getAccountInformationLogin(request);
     const pay = await this.payService.findOne({ id: payId });
     await this.clanService.validateRoleMember(account.id, getValueOrDefault(pay.data?.clanId, 0));
+
+    await this.clanService.findOne({ id: pay.data?.clanId });
+    if (updatePayDto.money) {
+      const totalCollectMoney = await this.collectMoneyService.totalCollectMoney(getValueOrDefault(pay.data?.id, 0));
+      const totalPayMoneyAfterInsert =
+        (await this.payService.getTotalPay(getValueOrDefault(pay.data?.id, 0))) -
+        getValueOrDefault(pay.data?.money, 0) +
+        updatePayDto.money;
+      if (totalCollectMoney - totalPayMoneyAfterInsert < 0) {
+        throw new ApiException(
+          {
+            money: ErrorCodeEnum.MONEY_NOT_ENOUGH,
+          },
+          HttpStatus.UNPROCESSABLE_ENTITY,
+          { updatePayDto },
+        );
+      }
+    }
+
     return await this.payService.update(payId, {
       ...updatePayDto,
     });

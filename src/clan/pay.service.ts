@@ -82,4 +82,11 @@ export class PayService {
   async softDelete(id: Pay['id']): Promise<void> {
     await this.payRepository.softDelete(id);
   }
+
+  async getTotalPay(clanId: number): Promise<number> {
+    const pay = await this.payRepository.find({ where: { clanId: clanId } });
+    const totalMoney = pay.reduce((accumulator, currentValue) => accumulator + currentValue.money, 0);
+
+    return totalMoney;
+  }
 }

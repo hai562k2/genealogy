@@ -101,10 +101,10 @@ export class CollectMoneyService {
     await this.collectMoneyRepository.softDelete(id);
   }
 
-  async totalCollectMoney(clanId: number): Promise<BaseResponseDto<number>> {
+  async totalCollectMoney(clanId: number): Promise<number> {
     const collectMoneys = await this.collectMoneyRepository.find({ where: { clanId: clanId } });
     const totalMoney = collectMoneys.reduce((accumulator, currentValue) => accumulator + currentValue.money, 0);
 
-    return ResponseHelper.success(totalMoney);
+    return totalMoney;
   }
 }

@@ -38,5 +38,6 @@ export enum ErrorCodeEnum {
   'TIME_EVENT_REQUIRED' = 'EA0037',
   'TIME_EVENT_IS_DATE' = 'EA0038',
   'PAY_NOT_FOUND' = 'EA0039',
+  'MONEY_NOT_ENOUGH' = 'EA0040',
   'SYSTEM_ERROR' = 'EA9999',
 }
