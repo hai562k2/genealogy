@@ -10,7 +10,6 @@ import { EntityCondition } from 'src/utils/types/entity-condition.type';
 import { ApiException } from 'src/utils/exceptions/api.exception';
 import { ErrorCodeEnum } from 'src/utils/error-code.enum';
 import { Clan } from './entities/clan.entity';
-import { FilterMemberDto } from './dto/filter-member.dto';
 
 @Injectable()
 export class MemberService {
