@@ -143,23 +143,14 @@ export class User extends EntityHelper {
   @Column({ name: 'wor_address', type: String, nullable: true })
   workAddress: string;
 
-  @Column({ type: String, nullable: true })
-  father: number;
+  @Column({ type: String, name: 'father_id', nullable: true })
+  fatherId: number;
 
-  @Column({ name: 'father_name', type: String, nullable: true })
-  fatherName: string;
-
-  @Column({ type: String, nullable: true })
+  @Column({ type: String, name: 'mother_id', nullable: true })
   mother: number;
 
-  @Column({ name: 'mother_name', type: String, nullable: true })
-  motherName: string;
-
-  @Column({ type: Number, nullable: true })
-  spouse: number;
-
-  @Column({ name: 'spouse_name', type: String, nullable: true })
-  spouseName: string;
+  @Column({ type: Number, name: 'partner_id', nullable: true })
+  partnerId: number;
 
   @Column({ type: String, nullable: true })
   domicile: string;
@@ -175,9 +166,6 @@ export class User extends EntityHelper {
 
   @Column({ name: 'lunar_dead_day' })
   lunarDeadDay: Date;
-
-  @Column({ type: Number, nullable: true })
-  patriarch: number;
 
   @BeforeInsert()
   @BeforeUpdate()
