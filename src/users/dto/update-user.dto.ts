@@ -56,27 +56,15 @@ export class UpdateUserDto {
 
   @ApiProperty({ example: 1 })
   @ValidationDecorator([{ rule: 'optional' }, { rule: 'int' }])
-  father?: number;
-
-  @ApiProperty({ example: 'July' })
-  @ValidationDecorator([{ rule: 'optional' }])
-  fatherName?: string;
+  father_id?: number;
 
   @ApiProperty({ example: 1 })
   @ValidationDecorator([{ rule: 'optional' }, { rule: 'int' }])
-  mother?: number;
-
-  @ApiProperty({ example: 'NaNa' })
-  @ValidationDecorator([{ rule: 'optional' }])
-  motherName?: string;
+  mother_id?: number;
 
   @ApiProperty({ example: 1 })
   @ValidationDecorator([{ rule: 'optional' }, { rule: 'int' }])
-  spouse?: number;
-
-  @ApiProperty({ example: 'HaNa' })
-  @ValidationDecorator([{ rule: 'optional' }])
-  souse_name?: string;
+  partner_id?: number;
 
   @ApiProperty({ example: 'Thai Nguyen' })
   @ValidationDecorator([{ rule: 'optional' }])
@@ -97,8 +85,4 @@ export class UpdateUserDto {
   @ApiProperty({ example: '2019-01-01', type: Date })
   @ValidationDecorator([{ rule: 'optional' }])
   lunarDeadDay?: Date;
-
-  @ApiProperty({ example: 1 })
-  @ValidationDecorator([{ rule: 'optional' }])
-  patriarch?: number;
 }
