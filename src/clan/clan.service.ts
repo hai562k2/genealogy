@@ -29,7 +29,10 @@ export class ClanService {
     return ResponseHelper.success(clan);
   }
 
-  async findManyWithPagination(paginationDto: FilterClanDto): Promise<BaseResponseDto<ListClanResponseType>> {
+  async findManyWithPagination(
+    paginationDto: FilterClanDto,
+    userId: number,
+  ): Promise<BaseResponseDto<ListClanResponseType>> {
     const queryClan = this.clanRepository.createQueryBuilder();
 
     if (paginationDto.keyword) {
@@ -44,13 +47,10 @@ export class ClanService {
       });
     }
 
-    // const member = this.commonService.getAccountInformationLogin(request);
-    // if (member) {
-    //   queryClan.innerJoin('Organization.members', 'members');
-    //   queryClan.andWhere('members.user_id = :memberId', {
-    //     memberId: member.id,
-    //   });
-    // }
+    queryClan.innerJoin('Clan.members', 'members');
+    queryClan.andWhere('members.user_id = :memberId', {
+      memberId: userId,
+    });
 
     return this.commonService.getDataByPagination(paginationDto, queryClan);
   }

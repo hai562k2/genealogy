@@ -13,7 +13,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { ApiCookieAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { FilesService } from './files.service';
 import { FileEntity } from './entities/file.entity';
@@ -36,7 +36,7 @@ export class FilesController {
     private readonly configService: ConfigService<AllConfigType>,
   ) {}
 
-  @ApiCookieAuth()
+  @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Post('upload')
   @ApiConsumes('multipart/form-data')
@@ -67,7 +67,7 @@ export class FilesController {
     return ResponseHelper.success(fileResponse);
   }
 
-  @ApiCookieAuth()
+  @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Get(':path')
   getFileByKeyS3(@Param('path') path: string, @Response() response) {
@@ -98,7 +98,7 @@ export class FilesController {
     });
   }
 
-  @ApiCookieAuth()
+  @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Delete()
   @HttpCode(HttpStatus.NO_CONTENT)

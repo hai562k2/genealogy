@@ -34,17 +34,6 @@ import { EmailExistsResponseType } from './types/email-exists-response.type';
 import { authenticator } from 'otplib';
 import { ErrorCodeEnum } from 'src/utils/error-code.enum';
 import { toFullName } from 'src/utils';
-import { AUTH_COOKIE } from '../utils/auth.constant';
-import { Response as ResponseType } from 'express';
-import { AppConstant } from 'src/utils/app.constant';
-
-type TCookieData = {
-  res: ResponseType;
-  token: string;
-  refreshToken?: string;
-  tokenExpiredAt?: Date;
-  refreshExpiredDate?: Date;
-};
 
 @Injectable()
 export class AuthService {
@@ -92,10 +81,11 @@ export class AuthService {
     const otpSecret = authenticator.generateSecret();
     await this.usersService.update(user.id, { otpSecret: otpSecret });
 
+    const password = this.generateOTP(otpSecret);
     await this.mailService.passwordOnetime({
       to: emailExistsDto.email,
       data: {
-        password: this.generateOTP(otpSecret),
+        password: password,
       },
     });
 
@@ -153,7 +143,6 @@ export class AuthService {
       id: user.id,
       role: user.role,
       sessionId: session.id,
-      isRememberMe: loginDto.remember === AppConstant.LOGIN_REMEMBER,
     });
 
     return {
@@ -514,25 +503,5 @@ export class AuthService {
     };
 
     return authenticator.generate(secret);
-  }
-
-  setAuthCookie({ res, token, refreshToken, tokenExpiredAt, refreshExpiredDate }: TCookieData) {
-    this.setCookie(res, AUTH_COOKIE.TOKEN, token, tokenExpiredAt);
-    if (refreshToken) this.setCookie(res, AUTH_COOKIE.REFRESH_TOKEN, refreshToken, refreshExpiredDate);
-  }
-
-  clearAuthCookie(res: ResponseType) {
-    const now = new Date();
-    this.setCookie(res, AUTH_COOKIE.TOKEN, '', now);
-    this.setCookie(res, AUTH_COOKIE.REFRESH_TOKEN, '', now);
-  }
-
-  private setCookie(res: ResponseType, key: string, value: string, expires?: Date) {
-    res.cookie(key, value, {
-      httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-      expires: expires,
-    });
   }
 }

@@ -1,16 +1,27 @@
-import { Body, Controller, HttpCode, HttpStatus, Param, Patch, Post, Req, Get, Delete, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Req,
+  Get,
+  Delete,
+  Query,
+  Request,
+} from '@nestjs/common';
 import { EventCommentService } from './event-comment.service';
 import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
-import { Request } from 'express';
 import { CreateEventResponseType } from './types/create-event-response.type';
 import { BaseResponseDto } from 'src/utils/dto/base-response.dto';
-import { CommonService } from 'src/utils/services/common.service';
 import { ClanService } from 'src/clan/clan.service';
 import { FileEntity } from 'src/files/entities/file.entity';
 import { getValueOrDefault, isNotEmptyField } from 'src/utils';
 import { FilesService } from 'src/files/files.service';
-import { ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { FilterEventDto } from './dto/filter-event.dto';
 import { ListEventResponseType } from './types/list-event-response.type';
 import { UpdateEventDto } from './dto/upate-event.dto';
@@ -22,22 +33,29 @@ import { CreateEventCommentDto } from './dto/create-event-comment.dto';
   path: 'event',
   version: '1',
 })
+@ApiBearerAuth()
 export class EventController {
   constructor(
     private readonly eventCommentService: EventCommentService,
     private readonly eventService: EventService,
-    private readonly commonService: CommonService,
     private readonly clanService: ClanService,
     private readonly filesService: FilesService,
   ) {}
+
+  @Get(':id')
+  @HttpCode(HttpStatus.OK)
+  async findOne(@Param('id') id: number): Promise<BaseResponseDto<CreateEventResponseType>> {
+    const event = await this.eventService.findOne({ id });
+    return event;
+  }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() createEventDto: CreateEventDto,
-    @Req() request: Request,
+    @Req() request,
   ): Promise<BaseResponseDto<CreateEventResponseType>> {
-    const account = this.commonService.getAccountInformationLogin(request);
+    const account = request.user;
 
     await this.clanService.validateMember(account.id, createEventDto.clanId);
 
@@ -67,22 +85,16 @@ export class EventController {
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'clanId', required: false, type: Number })
-  findAll(
+  async findAll(
     @Query() paginationDto: FilterEventDto,
-    @Req() request: Request,
+    @Req() request,
   ): Promise<BaseResponseDto<ListEventResponseType>> {
-    const account = this.commonService.getAccountInformationLogin(request);
+    const account = request.user;
+
     paginationDto.page = Number(paginationDto.page);
     paginationDto.limit = Number(paginationDto.limit);
 
-    return this.eventService.findManyWithPagination(paginationDto, account.id);
-  }
-
-  @Get(':id')
-  @HttpCode(HttpStatus.OK)
-  async findOne(@Param('id') id: number): Promise<BaseResponseDto<CreateEventResponseType>> {
-    const event = await this.eventService.findOne({ id });
-    return event;
+    return await this.eventService.findManyWithPagination(paginationDto, account.id);
   }
 
   @Patch(':id')
@@ -90,9 +102,11 @@ export class EventController {
   async update(
     @Param('id') id: number,
     @Body() updateEventDto: UpdateEventDto,
-    @Req() request: Request,
+    @Request() request,
   ): Promise<BaseResponseDto<CreateEventResponseType>> {
-    const account = this.commonService.getAccountInformationLogin(request);
+    console.log(request);
+    const account = request.user;
+    console.log(account);
     const event = await this.eventService.findOne({ id });
 
     await this.clanService.validateRoleOwnerOrCreatedBy(
@@ -123,12 +137,11 @@ export class EventController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(@Param('id') id: number, @Req() request: Request): Promise<void> {
-    const account = this.commonService.getAccountInformationLogin(request);
+  async remove(@Param('id') id: number, @Req() request): Promise<void> {
     const event = await this.eventService.findOne({ id });
 
     await this.clanService.validateRoleOwnerOrCreatedBy(
-      account.id,
+      request.user.id,
       getValueOrDefault(event.data?.clanId, 0),
       getValueOrDefault(event.data?.createdBy, 0),
     );
@@ -140,9 +153,9 @@ export class EventController {
   @HttpCode(HttpStatus.CREATED)
   async createEventComment(
     @Body() createEventCommentDto: CreateEventCommentDto,
-    @Req() request: Request,
+    @Req() request,
   ): Promise<BaseResponseDto<CreateEventCommentResponseType>> {
-    const account = this.commonService.getAccountInformationLogin(request);
+    const account = request.user;
     const event = await this.eventService.findOne({ id: createEventCommentDto.eventId });
 
     await this.clanService.validateMember(account.id, getValueOrDefault(event.data?.clanId, 0));

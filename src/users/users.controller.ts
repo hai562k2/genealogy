@@ -18,7 +18,7 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/roles/roles.decorator';
 import { RoleEnum } from 'src/roles/roles.enum';
 import { AuthGuard } from '@nestjs/passport';
@@ -34,7 +34,7 @@ import { FileEntity } from 'src/files/entities/file.entity';
 import { isNotEmptyField } from 'src/utils';
 import { FilesService } from 'src/files/files.service';
 
-@ApiCookieAuth()
+@ApiBearerAuth()
 @Roles(RoleEnum.admin, RoleEnum.user)
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 @ApiTags('Users')
@@ -114,8 +114,8 @@ export class UsersController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Req() request: Request, @Param('id') accountId: number): Promise<void> {
-    const { id } = this.commonService.getAccountInformationLogin(request);
+  remove(@Req() request, @Param('id') accountId: number): Promise<void> {
+    const { id } = request.user.id;
     this.commonService.isProfileOwner(id, accountId);
     return this.usersService.softDelete(accountId);
   }

@@ -30,12 +30,11 @@ export class EventService {
   }
 
   async findManyWithPagination(paginationDto: FilterEventDto, userId: number) {
-    const queryEvent = this.eventRepository.createQueryBuilder('Event');
+    const queryEvent = await this.eventRepository.createQueryBuilder('Event');
     queryEvent.leftJoinAndSelect('Event.clan', 'clan');
     queryEvent.leftJoinAndSelect('Event.user', 'user');
-    queryEvent.leftJoin('clan.members', 'member', 'member.user_id = :userId', {
-      userId,
-    });
+    queryEvent.leftJoin('clan.members', 'member');
+    queryEvent.andWhere('member.user_id = :userId', { userId });
 
     if (paginationDto.keyword) {
       queryEvent.where('LOWER(Event.content) LIKE :keyword', {

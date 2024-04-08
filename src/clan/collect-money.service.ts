@@ -31,9 +31,8 @@ export class CollectMoneyService {
     const queryCollectMoney = this.collectMoneyRepository.createQueryBuilder('collectMoney');
     queryCollectMoney.leftJoinAndSelect('collectMoney.clan', 'clan');
     queryCollectMoney.leftJoinAndSelect('collectMoney.user', 'user');
-    queryCollectMoney.leftJoin('clan.members', 'member', 'member.user_id = :userId', {
-      userId,
-    });
+    queryCollectMoney.leftJoin('clan.members', 'member');
+    queryCollectMoney.andWhere('member.user_id = :userId', { userId });
 
     if (paginationDto.keyword) {
       queryCollectMoney.where('LOWER(user.name) LIKE :keyword', {
@@ -42,8 +41,8 @@ export class CollectMoneyService {
     }
 
     if (paginationDto.clanId) {
-      queryCollectMoney.andWhere('Clan.id = :clanId', {
-        id: paginationDto.id,
+      queryCollectMoney.andWhere('collectMoney.clan_id = :clanId', {
+        clanId: paginationDto.clanId,
       });
     }
 
@@ -54,7 +53,7 @@ export class CollectMoneyService {
     }
 
     if (paginationDto.description) {
-      queryCollectMoney.where('LOWER(collectMoney.description) LIKE :keyword', {
+      queryCollectMoney.andWhere('LOWER(collectMoney.description) LIKE :keyword', {
         keyword: `%${paginationDto.keyword.toString().toLowerCase()}%`,
       });
     }

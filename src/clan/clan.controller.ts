@@ -13,7 +13,7 @@ import {
   Patch,
   Delete,
 } from '@nestjs/common';
-import { ApiCookieAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ClanService } from './clan.service';
 import { RoleEnum } from 'src/roles/roles.enum';
 import { AuthGuard } from '@nestjs/passport';
@@ -26,7 +26,6 @@ import { FileEntity } from 'src/files/entities/file.entity';
 import { getValueOrDefault, isAdminOrOwner, isNotEmptyField, isOwner } from 'src/utils';
 import { FilesService } from 'src/files/files.service';
 import { CommonService } from 'src/utils/services/common.service';
-import { Request } from 'express';
 import { FilterClanDto } from './dto/filter-clan.dto';
 import { ListClanResponseType } from './types/list-clan-reponse.type';
 import { ChangeOwnerDto } from './dto/change-owner.dto';
@@ -65,18 +64,15 @@ export class ClanController {
     private readonly payService: PayService,
   ) {}
 
-  @ApiCookieAuth()
+  @ApiBearerAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
   @SerializeOptions({
     groups: ['admin'],
   })
   @Post()
   @HttpCode(HttpStatus.OK)
-  async create(
-    @Body() createClanDto: CreateClanDto,
-    @Req() request: Request,
-  ): Promise<BaseResponseDto<CreateClanResponseType>> {
-    const account = this.commonService.getAccountInformationLogin(request);
+  async create(@Body() createClanDto: CreateClanDto, @Req() request): Promise<BaseResponseDto<CreateClanResponseType>> {
+    const account = request.user;
     let images: FileEntity[] = [];
     if (isNotEmptyField(createClanDto.image)) {
       images = await this.filesService.findAllByPath(createClanDto.image);
@@ -108,7 +104,7 @@ export class ClanController {
     return clan;
   }
 
-  @ApiCookieAuth()
+  @ApiBearerAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
   @SerializeOptions({
     groups: ['admin'],
@@ -124,16 +120,16 @@ export class ClanController {
   @ApiQuery({ name: 'description', required: false, type: String })
   findAllCollectMoney(
     @Query() paginationDto: FilterCollectMoneyDto,
-    @Req() request: Request,
+    @Req() request,
   ): Promise<BaseResponseDto<ListClanResponseType>> {
     paginationDto.page = Number(paginationDto.page);
     paginationDto.limit = Number(paginationDto.limit);
-    const account = this.commonService.getAccountInformationLogin(request);
+    const account = request.user;
 
     return this.collectMoneyService.findManyWithPagination(paginationDto, account.id);
   }
 
-  @ApiCookieAuth()
+  @ApiBearerAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
   @SerializeOptions({
     groups: ['detail'],
@@ -146,7 +142,7 @@ export class ClanController {
     return await this.collectMoneyService.findOne({ id: collectId });
   }
 
-  @ApiCookieAuth()
+  @ApiBearerAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
   @SerializeOptions({
     groups: ['admin'],
@@ -157,14 +153,14 @@ export class ClanController {
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'keyword', required: false, type: String })
   @ApiQuery({ name: 'id', required: false, type: Number })
-  findAll(@Query() paginationDto: FilterClanDto): Promise<BaseResponseDto<ListClanResponseType>> {
+  findAll(@Query() paginationDto: FilterClanDto, @Req() request): Promise<BaseResponseDto<ListClanResponseType>> {
     paginationDto.page = Number(paginationDto.page);
     paginationDto.limit = Number(paginationDto.limit);
 
-    return this.clanService.findManyWithPagination(paginationDto);
+    return this.clanService.findManyWithPagination(paginationDto, request.user.id);
   }
 
-  @ApiCookieAuth()
+  @ApiBearerAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
   @SerializeOptions({
     groups: ['detail'],
@@ -175,7 +171,7 @@ export class ClanController {
     return await this.clanService.findOne({ id });
   }
 
-  @ApiCookieAuth()
+  @ApiBearerAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
   @SerializeOptions({
     groups: ['admin'],
@@ -189,7 +185,7 @@ export class ClanController {
     return await this.clanService.update(id, updateClanDto);
   }
 
-  @ApiCookieAuth()
+  @ApiBearerAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
   @Delete(':id/members/:member_id')
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -198,7 +194,7 @@ export class ClanController {
     @Param('member_id') memberId: number,
     @Req() request,
   ): Promise<void> {
-    const account = this.commonService.getAccountInformationLogin(request);
+    const account = request.user;
 
     const member = await this.membersService.findOne({
       clanId: +id,
@@ -237,7 +233,7 @@ export class ClanController {
     return this.membersService.removeMember(id, memberId);
   }
 
-  @ApiCookieAuth()
+  @ApiBearerAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -245,7 +241,7 @@ export class ClanController {
     return this.clanService.softDelete(id);
   }
 
-  @ApiCookieAuth()
+  @ApiBearerAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
   @SerializeOptions({
     groups: ['admin'],
@@ -257,7 +253,7 @@ export class ClanController {
     @Body() changeOwnerDto: ChangeOwnerDto,
     @Req() request,
   ): Promise<BaseResponseDto<CreateMemberResponseType>> {
-    const account = this.commonService.getAccountInformationLogin(request);
+    const account = request.user;
 
     const memberOwner = await this.membersService.findOne({
       clanId: id,
@@ -321,15 +317,15 @@ export class ClanController {
     return memberChangeOwner;
   }
 
-  @ApiCookieAuth()
+  @ApiBearerAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
   @HttpCode(HttpStatus.CREATED)
   @Post('collect-money')
   async createCollectMoney(
     @Body() createCollectMoney: CreateCollectMoneyDto,
-    @Req() request: Request,
+    @Req() request,
   ): Promise<BaseResponseDto<CreateCollectMoneyResponseType>> {
-    const account = this.commonService.getAccountInformationLogin(request);
+    const account = request.user;
     await this.clanService.validateRoleMember(account.id, createCollectMoney.clanId);
     await this.clanService.findOne({ id: createCollectMoney.clanId });
     const user = await this.usersService.findOne({ id: createCollectMoney.userId });
@@ -349,16 +345,16 @@ export class ClanController {
     return collectMoney;
   }
 
-  @ApiCookieAuth()
+  @ApiBearerAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
   @HttpCode(HttpStatus.OK)
   @Patch('collect-money/:collectMoneyId')
   async updateCollectMoney(
     @Param('collectMoneyId') collectMoneyId: number,
     @Body() updateCollectMoneyDto: UpdateCollectMoneyDto,
-    @Req() request: Request,
+    @Req() request,
   ): Promise<BaseResponseDto<CreateCollectMoneyResponseType>> {
-    const account = this.commonService.getAccountInformationLogin(request);
+    const account = request.user;
     const collectMoney = await this.collectMoneyService.findOne({ id: collectMoneyId });
     await this.clanService.validateRoleMember(account.id, getValueOrDefault(collectMoney.data?.clanId, 0));
     return await this.collectMoneyService.update(collectMoneyId, {
@@ -366,7 +362,7 @@ export class ClanController {
     });
   }
 
-  @ApiCookieAuth()
+  @ApiBearerAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
   @HttpCode(HttpStatus.OK)
   @Get('collect-money/total-money/:clanId')
@@ -377,7 +373,7 @@ export class ClanController {
     return ResponseHelper.success(collectMoney - payMoney);
   }
 
-  @ApiCookieAuth()
+  @ApiBearerAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete('collect-money/:collectId')
@@ -385,7 +381,7 @@ export class ClanController {
     await this.collectMoneyService.softDelete(collectId);
   }
 
-  @ApiCookieAuth()
+  @ApiBearerAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
   @SerializeOptions({
     groups: ['admin'],
@@ -397,26 +393,20 @@ export class ClanController {
   @ApiQuery({ name: 'keyword', required: false, type: String })
   @ApiQuery({ name: 'id', required: false, type: Number })
   @ApiQuery({ name: 'clanId', required: false, type: Number })
-  findAllPay(
-    @Query() paginationDto: FilterPayDto,
-    @Req() request: Request,
-  ): Promise<BaseResponseDto<ListClanResponseType>> {
+  findAllPay(@Query() paginationDto: FilterPayDto, @Req() request): Promise<BaseResponseDto<ListClanResponseType>> {
     paginationDto.page = Number(paginationDto.page);
     paginationDto.limit = Number(paginationDto.limit);
-    const account = this.commonService.getAccountInformationLogin(request);
+    const account = request.user;
 
     return this.payService.findManyWithPagination(paginationDto, account.id);
   }
 
-  @ApiCookieAuth()
+  @ApiBearerAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
   @HttpCode(HttpStatus.CREATED)
   @Post('pay')
-  async createPay(
-    @Body() createPayDto: CreatePayDto,
-    @Req() request: Request,
-  ): Promise<BaseResponseDto<CreatePayResponseType>> {
-    const account = this.commonService.getAccountInformationLogin(request);
+  async createPay(@Body() createPayDto: CreatePayDto, @Req() request): Promise<BaseResponseDto<CreatePayResponseType>> {
+    const account = request.user;
     await this.clanService.validateRoleMember(account.id, createPayDto.clanId);
     const clan = await this.clanService.findOne({ id: createPayDto.clanId });
     const totalCollectMoney = await this.collectMoneyService.totalCollectMoney(getValueOrDefault(clan.data?.id, 0));
@@ -439,16 +429,16 @@ export class ClanController {
     return collect;
   }
 
-  @ApiCookieAuth()
+  @ApiBearerAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
   @HttpCode(HttpStatus.OK)
   @Patch('pay/:payId')
   async updatePay(
     @Param('payId') payId: number,
     @Body() updatePayDto: UpdatePayDto,
-    @Req() request: Request,
+    @Req() request,
   ): Promise<BaseResponseDto<CreatePayResponseType>> {
-    const account = this.commonService.getAccountInformationLogin(request);
+    const account = request.user;
     const pay = await this.payService.findOne({ id: payId });
     await this.clanService.validateRoleMember(account.id, getValueOrDefault(pay.data?.clanId, 0));
 
@@ -475,7 +465,7 @@ export class ClanController {
     });
   }
 
-  @ApiCookieAuth()
+  @ApiBearerAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
   @SerializeOptions({
     groups: ['detail'],
@@ -486,7 +476,7 @@ export class ClanController {
     return await this.payService.findOne({ id: payId });
   }
 
-  @ApiCookieAuth()
+  @ApiBearerAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete('pay/:payId')

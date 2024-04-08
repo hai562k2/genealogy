@@ -10,10 +10,9 @@ import {
   Patch,
   Delete,
   SerializeOptions,
-  Res,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthEmailLoginDto } from './dto/auth-email-login.dto';
 import { AuthForgotPasswordDto } from './dto/auth-forgot-password.dto';
 import { AuthConfirmEmailDto } from './dto/auth-confirm-email.dto';
@@ -27,7 +26,6 @@ import { NullableType } from '../utils/types/nullable.type';
 import { BaseResponseDto } from 'src/utils/dto/base-response.dto';
 import { EmailExistsDto } from './dto/email-exists.dto';
 import { EmailExistsResponseType } from './types/email-exists-response.type';
-import { Response as ResponseType } from 'express';
 import { ResponseHelper } from '../utils/helpers/response.helper';
 
 @ApiTags('Auth')
@@ -52,20 +50,10 @@ export class AuthController {
   })
   @Post('email/login')
   @HttpCode(HttpStatus.OK)
-  async login(
-    @Body() loginDto: AuthEmailLoginDto,
-    @Res({ passthrough: true }) res: ResponseType,
-  ): Promise<BaseResponseDto<User>> {
-    const { token, refreshToken, user, tokenExpires, refreshTokenExpires } = await this.service.validateLogin(
-      loginDto,
-      false,
-    );
-    const isRememberMe = false;
-    const tokenExpiredAt = new Date(tokenExpires);
-    const refreshExpiredDate = isRememberMe ? new Date(refreshTokenExpires) : undefined;
-    this.service.setAuthCookie({ res, token, refreshToken, tokenExpiredAt, refreshExpiredDate });
+  async login(@Body() loginDto: AuthEmailLoginDto): Promise<BaseResponseDto<LoginResponseType>> {
+    const data = await this.service.validateLogin(loginDto, false);
 
-    return ResponseHelper.success(user);
+    return ResponseHelper.success(data);
   }
 
   @SerializeOptions({
@@ -73,19 +61,10 @@ export class AuthController {
   })
   @Post('admin/email/login')
   @HttpCode(HttpStatus.OK)
-  async adminLogin(
-    @Body() loginDto: AuthEmailLoginDto,
-    @Res({ passthrough: true }) res: ResponseType,
-  ): Promise<BaseResponseDto<User>> {
-    const { token, refreshToken, user, tokenExpires, refreshTokenExpires } = await this.service.validateLogin(
-      loginDto,
-      true,
-    );
-    const tokenExpiredAt = new Date(tokenExpires);
-    const refreshExpiredDate = new Date(refreshTokenExpires);
-    this.service.setAuthCookie({ res, token, refreshToken, tokenExpiredAt, refreshExpiredDate });
+  async adminLogin(@Body() loginDto: AuthEmailLoginDto): Promise<BaseResponseDto<LoginResponseType>> {
+    const data = await this.service.validateLogin(loginDto, true);
 
-    return ResponseHelper.success(user);
+    return ResponseHelper.success(data);
   }
 
   @SerializeOptions({
@@ -115,7 +94,7 @@ export class AuthController {
     return this.service.resetPassword(resetPasswordDto.hash, resetPasswordDto.password);
   }
 
-  @ApiCookieAuth()
+  @ApiBearerAuth()
   @SerializeOptions({
     groups: ['me'],
   })
@@ -126,7 +105,7 @@ export class AuthController {
     return this.service.me(request.user);
   }
 
-  @ApiCookieAuth()
+  @ApiBearerAuth()
   @SerializeOptions({
     groups: ['me'],
   })
@@ -137,24 +116,20 @@ export class AuthController {
     const data = await this.service.refreshToken({
       sessionId: request.user.sessionId,
     });
-    const { token, tokenExpires } = data;
-    const tokenExpiredAt = new Date(tokenExpires);
-    this.service.setAuthCookie({ res: request.res, token, tokenExpiredAt });
     return data;
   }
 
-  @ApiCookieAuth()
+  @ApiBearerAuth()
   @Post('logout')
   @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.NO_CONTENT)
-  public async logout(@Request() request, @Res({ passthrough: true }) res: ResponseType): Promise<void> {
-    this.service.clearAuthCookie(res);
+  public async logout(@Request() request): Promise<void> {
     await this.service.logout({
       sessionId: request.user.sessionId,
     });
   }
 
-  @ApiCookieAuth()
+  @ApiBearerAuth()
   @SerializeOptions({
     groups: ['me'],
   })
@@ -165,13 +140,12 @@ export class AuthController {
     return this.service.update(request.user, userDto);
   }
 
-  @ApiCookieAuth()
+  @ApiBearerAuth()
   @Delete('me')
   @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.NO_CONTENT)
-  public async delete(@Request() request, @Res({ passthrough: true }) res: ResponseType): Promise<void> {
+  public async delete(@Request() request): Promise<void> {
     await this.service.softDelete(request.user);
-    this.service.clearAuthCookie(res);
 
     await this.service.logout({
       sessionId: request.user.sessionId,

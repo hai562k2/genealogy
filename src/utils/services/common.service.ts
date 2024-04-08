@@ -1,14 +1,12 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { User } from 'src/users/entities/user.entity';
 import { PaginationDto } from '../dto/pagination.dto';
 import { ResponseHelper } from '../helpers/response.helper';
 import { AppConstant } from '../app.constant';
 import { FilterOperationDto } from '../dto/filter-operation.dto';
 import { ApiException } from '../exceptions/api.exception';
 import { ErrorCodeEnum } from '../error-code.enum';
-import { AUTH_COOKIE } from '../auth.constant';
-import { Request as RequestType, Response } from 'express';
+import { Response } from 'express';
 import path from 'path';
 import { ConfigService } from '@nestjs/config';
 import { AllConfigType } from 'src/config/config.type';
@@ -30,10 +28,6 @@ export class CommonService {
    * @param request
    * @returns
    */
-  getAccountInformationLogin(request: RequestType): User {
-    const token = request?.cookies[AUTH_COOKIE.TOKEN];
-    return this.jwtService.decode(token) as User;
-  }
 
   /**
    * @param accountIdLogged

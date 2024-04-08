@@ -7,14 +7,12 @@ import { AppModule } from './app.module';
 import validationOptions from './utils/validation-options';
 import { AllConfigType } from './config/config.type';
 import { LoggerWinston } from './utils/logger';
-import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true, logger: new LoggerWinston() });
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
   const configService = app.get(ConfigService<AllConfigType>);
 
-  app.use(cookieParser());
   app.enableShutdownHooks();
   app.setGlobalPrefix(configService.getOrThrow('app.apiPrefix', { infer: true }), {
     exclude: ['/'],

@@ -111,7 +111,7 @@ export class User extends EntityHelper {
   images: string;
 
   @Column({ nullable: true })
-  sex: number;
+  gender: number;
 
   @Column({ nullable: true })
   birthday: Date;
@@ -143,13 +143,13 @@ export class User extends EntityHelper {
   @Column({ name: 'wor_address', type: String, nullable: true })
   workAddress: string;
 
-  @Column({ type: String, name: 'father_id', nullable: true })
+  @Column({ type: String, name: 'fid', nullable: true })
   fatherId: number;
 
-  @Column({ type: String, name: 'mother_id', nullable: true })
-  mother: number;
+  @Column({ type: String, name: 'mid', nullable: true })
+  motherId: number;
 
-  @Column({ type: Number, name: 'partner_id', nullable: true })
+  @Column({ type: Number, name: 'pid', nullable: true })
   partnerId: number;
 
   @Column({ type: String, nullable: true })
