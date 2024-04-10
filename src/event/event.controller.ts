@@ -11,6 +11,7 @@ import {
   Delete,
   Query,
   Request,
+  UseGuards,
 } from '@nestjs/common';
 import { EventCommentService } from './event-comment.service';
 import { EventService } from './event.service';
@@ -27,13 +28,19 @@ import { ListEventResponseType } from './types/list-event-response.type';
 import { UpdateEventDto } from './dto/upate-event.dto';
 import { CreateEventCommentResponseType } from './types/create-event-comment-response.type';
 import { CreateEventCommentDto } from './dto/create-event-comment.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from 'src/roles/roles.guard';
+import { Roles } from 'src/roles/roles.decorator';
+import { RoleEnum } from 'src/roles/roles.enum';
 
 @ApiTags('Event')
 @Controller({
   path: 'event',
   version: '1',
 })
+@UseGuards(AuthGuard('jwt'), RolesGuard)
 @ApiBearerAuth()
+@Roles(RoleEnum.admin, RoleEnum.user)
 export class EventController {
   constructor(
     private readonly eventCommentService: EventCommentService,
@@ -41,6 +48,23 @@ export class EventController {
     private readonly clanService: ClanService,
     private readonly filesService: FilesService,
   ) {}
+
+  @Get('list')
+  @HttpCode(HttpStatus.OK)
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'clanId', required: false, type: Number })
+  async findAll(
+    @Query() paginationDto: FilterEventDto,
+    @Req() request,
+  ): Promise<BaseResponseDto<ListEventResponseType>> {
+    const account = request.user;
+
+    paginationDto.page = Number(paginationDto.page);
+    paginationDto.limit = Number(paginationDto.limit);
+
+    return await this.eventService.findManyWithPagination(paginationDto, account.id);
+  }
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
@@ -80,23 +104,6 @@ export class EventController {
     return eventCreate;
   }
 
-  @Get('list')
-  @HttpCode(HttpStatus.OK)
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiQuery({ name: 'clanId', required: false, type: Number })
-  async findAll(
-    @Query() paginationDto: FilterEventDto,
-    @Req() request,
-  ): Promise<BaseResponseDto<ListEventResponseType>> {
-    const account = request.user;
-
-    paginationDto.page = Number(paginationDto.page);
-    paginationDto.limit = Number(paginationDto.limit);
-
-    return await this.eventService.findManyWithPagination(paginationDto, account.id);
-  }
-
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   async update(
@@ -104,9 +111,7 @@ export class EventController {
     @Body() updateEventDto: UpdateEventDto,
     @Request() request,
   ): Promise<BaseResponseDto<CreateEventResponseType>> {
-    console.log(request);
     const account = request.user;
-    console.log(account);
     const event = await this.eventService.findOne({ id });
 
     await this.clanService.validateRoleOwnerOrCreatedBy(
