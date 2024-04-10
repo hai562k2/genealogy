@@ -8,6 +8,7 @@ export class AlterTableUserDropColumn1712047389872 implements MigrationInterface
     await queryRunner.query('ALTER TABLE "user" RENAME COLUMN father TO fid');
     await queryRunner.query('ALTER TABLE "user" RENAME COLUMN mother TO mid');
     await queryRunner.query('ALTER TABLE "user" RENAME COLUMN spouse TO pid');
+    await queryRunner.query('ALTER TABLE "user" ALTER COLUMN gender TYPE varchar(10)');
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

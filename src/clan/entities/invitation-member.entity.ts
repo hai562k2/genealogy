@@ -5,20 +5,20 @@ export class InvitationMember {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'user_id', type: Number })
+  @Column({ name: 'user_id' })
   userId: number;
 
-  @Column({ name: 'mid', type: Number })
+  @Column({ name: 'mid' })
   motherId: number;
 
-  @Column({ name: 'fid', type: Number })
+  @Column({ name: 'fid' })
   fatherId: number;
 
-  @Column({ name: 'pid', type: Number })
+  @Column({ name: 'pid' })
   partnerId: number;
 
-  @Column({ name: 'gender', type: Number })
-  gender: number;
+  @Column({ name: 'gender', type: String })
+  gender: string;
 
   @Column({ name: 'name' })
   name: string;
@@ -26,13 +26,13 @@ export class InvitationMember {
   @Column({ name: 'clan_name' })
   clanName: string;
 
-  @Column({ name: 'clan_id', type: Number })
+  @Column({ name: 'clan_id' })
   clanId: number;
 
   @Column({ type: String, unique: true, nullable: true })
   email: string;
 
-  @Column({ name: 'role_cd', type: Number })
+  @Column({ name: 'role_cd' })
   roleCd: number;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

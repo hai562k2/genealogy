@@ -28,4 +28,7 @@ export class AppConstant {
   public static LOGGED = 1;
   public static LOGIN_NOT_REMEMBER = 0;
   public static LOGIN_REMEMBER = 1;
+  public static MALE = 'male';
+  public static FEMALE = 'female';
+  public static NON_BINARY = 'non-binary';
 }

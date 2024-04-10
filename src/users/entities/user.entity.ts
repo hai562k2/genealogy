@@ -111,7 +111,7 @@ export class User extends EntityHelper {
   images: string;
 
   @Column({ nullable: true })
-  gender: number;
+  gender: string;
 
   @Column({ nullable: true })
   birthday: Date;
