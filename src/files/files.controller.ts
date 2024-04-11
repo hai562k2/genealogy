@@ -67,8 +67,6 @@ export class FilesController {
     return ResponseHelper.success(fileResponse);
   }
 
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
   @Get(':path')
   getFileByKeyS3(@Param('path') path: string, @Response() response) {
     const s3 = new S3({

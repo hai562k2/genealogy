@@ -31,4 +31,5 @@ export class AppConstant {
   public static MALE = 'male';
   public static FEMALE = 'female';
   public static NON_BINARY = 'non-binary';
+  public static MIDDLE_PATH: string = '/v1/files/';
 }

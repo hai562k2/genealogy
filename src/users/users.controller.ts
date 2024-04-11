@@ -100,12 +100,7 @@ export class UsersController {
     const updateUser = await this.usersService.editAccount(accountId, {
       ...updateProfileDto,
       ...{
-        images: images.map((image) => {
-          return {
-            path: image.path,
-            name: image.name,
-          };
-        }),
+        images: images.map((image) => image.path),
       },
     });
 

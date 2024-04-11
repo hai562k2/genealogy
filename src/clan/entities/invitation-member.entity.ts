@@ -14,8 +14,15 @@ export class InvitationMember {
   @Column({ name: 'fid' })
   fatherId: number;
 
-  @Column({ name: 'pid' })
-  partnerId: number;
+  @Column('bigint', {
+    name: 'pids',
+    array: true,
+    transformer: {
+      to: (value: number[]) => value,
+      from: (value: string[]) => value.map(Number),
+    },
+  })
+  partnerId: number[];
 
   @Column({ name: 'gender', type: String })
   gender: string;

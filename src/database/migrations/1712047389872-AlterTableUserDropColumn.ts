@@ -7,14 +7,15 @@ export class AlterTableUserDropColumn1712047389872 implements MigrationInterface
     );
     await queryRunner.query('ALTER TABLE "user" RENAME COLUMN father TO fid');
     await queryRunner.query('ALTER TABLE "user" RENAME COLUMN mother TO mid');
-    await queryRunner.query('ALTER TABLE "user" RENAME COLUMN spouse TO pid');
+    await queryRunner.query('ALTER TABLE "user" ALTER COLUMN spouse TYPE BIGINT ARRAY');
+    await queryRunner.query('ALTER TABLE "user" RENAME COLUMN spouse TO pids');
     await queryRunner.query('ALTER TABLE "user" ALTER COLUMN gender TYPE varchar(10)');
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query('ALTER TABLE "user" RENAME COLUMN fid TO father');
     await queryRunner.query('ALTER TABLE "user" RENAME COLUMN mid TO mother');
-    await queryRunner.query('ALTER TABLE "user" RENAME COLUMN pid TO spouse');
+    await queryRunner.query('ALTER TABLE "user" RENAME COLUMN pids TO spouse');
 
     await queryRunner.query(
       'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS father_name varchar(255), ADD COLUMN IF NOT EXISTS mother_name varchar(255), ADD COLUMN IF NOT EXISTS spouse_name varchar(255), ADD COLUMN IF NOT EXISTS patriarch varchar(255)',

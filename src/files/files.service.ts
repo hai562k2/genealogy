@@ -7,6 +7,7 @@ import { AllConfigType } from 'src/config/config.type';
 import { ApiException } from 'src/utils/exceptions/api.exception';
 import { ErrorCodeEnum } from 'src/utils/error-code.enum';
 import { S3 } from '@aws-sdk/client-s3';
+import { AppConstant } from 'src/utils/app.constant';
 
 @Injectable()
 export class FilesService {
@@ -31,9 +32,20 @@ export class FilesService {
       s3: (file as Express.MulterS3.File).key,
     };
 
+    const url = this.configService.getOrThrow('app.backendDomain', { infer: true });
+    const apiPrefix = this.configService.getOrThrow('app.apiPrefix', { infer: true });
+
+    const filePath =
+      url +
+      '/' +
+      apiPrefix +
+      AppConstant.MIDDLE_PATH +
+      path[this.configService.getOrThrow('file.driver', { infer: true })];
+    const filePathTransform = filePath.replace('images/', 'images%2F');
+
     return this.fileRepository.save(
       this.fileRepository.create({
-        path: path[this.configService.getOrThrow('file.driver', { infer: true })],
+        path: filePathTransform,
         name: file.originalname,
       }),
     );

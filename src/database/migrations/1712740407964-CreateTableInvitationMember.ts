@@ -8,7 +8,7 @@ export class CreateTableInvitationMember1712740407964 implements MigrationInterf
                 "user_id" BIGINT NOT NULL,
                 "mid" BIGINT,
                 "fid" BIGINT,
-                "pid" BIGINT,
+                "pids" BIGINT ARRAY,
                 "name" character varying,
                 "gender" varchar(10),
                 "clan_name" VARCHAR(255),

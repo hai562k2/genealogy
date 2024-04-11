@@ -149,8 +149,15 @@ export class User extends EntityHelper {
   @Column({ type: String, name: 'mid', nullable: true })
   motherId: number;
 
-  @Column({ type: Number, name: 'pid', nullable: true })
-  partnerId: number;
+  @Column('bigint', {
+    name: 'pids',
+    array: true,
+    transformer: {
+      to: (value: number[]) => value,
+      from: (value: string[]) => value.map(Number),
+    },
+  })
+  partnerId: number[];
 
   @Column({ type: String, nullable: true })
   domicile: string;
