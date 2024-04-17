@@ -12,8 +12,15 @@ import { EntityCondition } from 'src/utils/types/entity-condition.type';
 import { ApiException } from 'src/utils/exceptions/api.exception';
 import { ErrorCodeEnum } from 'src/utils/error-code.enum';
 import { ListClanResponseType } from './types/list-clan-reponse.type';
-import { isAdminOrOwner, isNotEmptyField, isOwner } from 'src/utils';
+import { getValueOrDefault, isAdminOrOwner, isNotEmptyField, isOwner } from 'src/utils';
 import { MemberService } from './member.service';
+import { UsersService } from 'src/users/users.service';
+import { InviteMemberDto } from './dto/invite-member.dto';
+import { InviteMemberService } from './invite-member.service';
+import { CreateMemberDto } from './dto/create-member.dto';
+import { StatusEnum } from 'src/statuses/statuses.enum';
+import { MailService } from 'src/mail/mail.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ClanService {
@@ -22,6 +29,10 @@ export class ClanService {
     private clanRepository: Repository<Clan>,
     private commonService: CommonService,
     private membersService: MemberService,
+    private readonly usersService: UsersService,
+    private readonly inviteMemberService: InviteMemberService,
+    private readonly mailService: MailService,
+    private configService: ConfigService,
   ) {}
 
   async create(createClanDto: CreateClanDto): Promise<BaseResponseDto<Clan>> {
@@ -88,6 +99,70 @@ export class ClanService {
 
   async softDelete(id: Clan['id']): Promise<void> {
     await this.clanRepository.softDelete(id);
+  }
+
+  async inviteMember(dto: InviteMemberDto, clanId: number): Promise<void> {
+    let user = await this.usersService.checkEmailMemberExists(dto);
+    if (!user) {
+      user = await this.usersService.registerNotOtp(dto);
+    } else {
+      const emailInClan = await this.membersService.isEmailInClan(dto.email, clanId);
+      const deletedMember = await this.membersService.isEmailInDeletedMembers(user.id, clanId);
+
+      if (emailInClan) {
+        throw new ApiException(
+          {
+            message: ErrorCodeEnum.EMAIL_IS_NOT_EXISTS,
+          },
+          HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+      } else if (deletedMember) {
+        await this.membersService.delete(deletedMember.clanId, deletedMember.userId);
+      }
+    }
+
+    const clan = await this.clanRepository.findOne({ where: { id: clanId } });
+
+    if (clan?.name && user) {
+      const dataInvite = {
+        userId: user.id,
+        clanName: clan?.name,
+        clanId: clanId,
+        email: dto.email,
+        roleCd: dto.roleCd,
+        gender: dto.gender,
+        mid: dto.mid,
+        fid: dto.fid,
+        pids: dto.pids,
+        name: getValueOrDefault(user.name, dto.name),
+      };
+
+      await this.inviteMemberService.create(dataInvite);
+      const memberInvite = await this.inviteMemberService.findOne({ userId: dataInvite.userId });
+
+      let createMemberDto: CreateMemberDto = {
+        clanId: dataInvite.clanId,
+        userId: dataInvite.userId,
+        roleCd: dataInvite.roleCd,
+      };
+
+      if (user.status && user.status.id === StatusEnum.active) {
+        createMemberDto = {
+          ...createMemberDto,
+        };
+      }
+
+      await this.membersService.create(createMemberDto);
+
+      await this.mailService.inviteEmail({
+        to: dto.email,
+        data: {
+          hash: `${this.configService.get('app.urlInvite', { infer: true })}/${memberInvite?.id}`,
+          userName: dataInvite.name,
+          organizationName: dataInvite.clanName,
+        },
+      });
+    }
   }
 
   validateUserAndClanIdNotNull(userId: number, clanId: number) {

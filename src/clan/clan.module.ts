@@ -14,11 +14,35 @@ import { CollectMoneyService } from './collect-money.service';
 import { User } from 'src/users/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
 import { PayService } from './pay.service';
+import { InviteMemberService } from './invite-member.service';
+import { MailService } from 'src/mail/mail.service';
+import { InvitationMember } from './entities/invitation-member.entity';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Clan, Member, FileEntity, CollectMoney, Pay, User]), ShareModule],
-  providers: [ClanService, MemberService, FilesService, CollectMoneyService, UsersService, PayService],
+  imports: [
+    TypeOrmModule.forFeature([Clan, Member, FileEntity, CollectMoney, Pay, User, InvitationMember]),
+    ShareModule,
+    MailModule,
+  ],
+  providers: [
+    ClanService,
+    MemberService,
+    FilesService,
+    CollectMoneyService,
+    UsersService,
+    PayService,
+    InviteMemberService,
+  ],
   controllers: [ClanController],
-  exports: [ClanService, MemberService, FilesService, CollectMoneyService, UsersService, PayService],
+  exports: [
+    ClanService,
+    MemberService,
+    FilesService,
+    CollectMoneyService,
+    UsersService,
+    PayService,
+    InviteMemberService,
+  ],
 })
 export class ClanModule {}

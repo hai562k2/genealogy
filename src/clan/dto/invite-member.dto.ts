@@ -18,6 +18,26 @@ export class InviteMemberDto {
   ])
   email: string;
 
+  @ApiProperty({ example: 1 })
+  @ValidationDecorator([
+    { rule: 'optional' },
+    { rule: 'int', params: { validationOptions: { message: ErrorCodeEnum.MOTHER_ID_IS_INT } } },
+  ])
+  mid: number;
+
+  @ApiProperty({ example: 1 })
+  @ValidationDecorator([
+    { rule: 'optional' },
+    { rule: 'int', params: { validationOptions: { message: ErrorCodeEnum.FATHER_ID_IS_INT } } },
+  ])
+  fid: number;
+  @ApiProperty({ example: [1, 2] })
+  @ValidationDecorator([
+    { rule: 'optional' },
+    { rule: 'int', params: { validationOptions: { message: ErrorCodeEnum.PARTNER_ID_IS_INT } } },
+  ])
+  pids: number[];
+
   @ApiProperty({ example: 'male' })
   @ValidationDecorator([
     {

@@ -74,4 +74,19 @@ export class MemberService {
       userId: memberId,
     });
   }
+
+  async isEmailInClan(email: string, clanId: number) {
+    return !!(await this.memberRepository.findOne({
+      where: { members: { email }, clanId },
+    }));
+  }
+
+  async isEmailInDeletedMembers(userId: number, clanId: number) {
+    return await this.memberRepository
+      .createQueryBuilder('member')
+      .where('member.user_id = :userId', { userId })
+      .andWhere('member.clanId = :clanId', { clanId: clanId })
+      .withDeleted()
+      .getOne();
+  }
 }

@@ -46,6 +46,7 @@ import { CreatePayDto } from './dto/create-pay.dto';
 import { CreatePayResponseType } from './types/create-pay-response.type';
 import { UpdatePayDto } from './dto/update-pay.dto';
 import { ResponseHelper } from 'src/utils/helpers/response.helper';
+import { InviteMemberDto } from './dto/invite-member.dto';
 
 @ApiTags('Clan')
 @Controller({
@@ -183,6 +184,33 @@ export class ClanController {
     @Body() updateClanDto: CreateClanDto,
   ): Promise<BaseResponseDto<CreateClanResponseType>> {
     return await this.clanService.update(id, updateClanDto);
+  }
+
+  @ApiBearerAuth()
+  @Roles(RoleEnum.admin, RoleEnum.user)
+  @SerializeOptions({
+    groups: ['admin'],
+  })
+  @Post(':id/members/invite')
+  @HttpCode(HttpStatus.OK)
+  async inviteMember(@Param('id') id: number, @Body() dto: InviteMemberDto, @Req() request): Promise<void> {
+    const member = await this.membersService.findOne({
+      clanId: id,
+      userId: request.user.id,
+    });
+
+    if (!isAdminOrOwner(member?.data?.roleCd)) {
+      throw new ApiException(
+        {
+          id: ErrorCodeEnum.MEMBER_NOT_PERMISSION,
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+        {
+          id: id,
+        },
+      );
+    }
+    return await this.clanService.inviteMember(dto, id);
   }
 
   @ApiBearerAuth()
