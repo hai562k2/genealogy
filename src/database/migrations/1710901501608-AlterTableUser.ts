@@ -4,7 +4,7 @@ export class AlterTableUser1710901501608 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
             ALTER TABLE "user"
-            ADD COLUMN sex BIGINT,
+            ADD COLUMN gender BIGINT,
             ADD COLUMN birthday TIMESTAMP,
             ADD COLUMN lunar_birthday TIMESTAMP,
             ADD COLUMN country VARCHAR,
@@ -19,7 +19,7 @@ export class AlterTableUser1710901501608 implements MigrationInterface {
             ADD COLUMN father_name VARCHAR,
             ADD COLUMN mother BIGINT,
             ADD COLUMN mother_name VARCHAR,
-            ADD COLUMN spouse BiGINT,
+            ADD COLUMN spouse BIGINT ARRAY,
             ADD COLUMN spouse_name VARCHAR,
             ADD COLUMN domicile VARCHAR,
             ADD COLUMN resident VARCHAR,
