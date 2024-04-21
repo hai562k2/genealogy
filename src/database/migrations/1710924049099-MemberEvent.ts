@@ -36,7 +36,6 @@ export class MemberEvent1710924049099 implements MigrationInterface {
         "image" JSONB,
         "content" VARCHAR(255),
         "created_by" BIGINT,
-        "created_by" BIGINT,
         "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
         "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
         "deleted_at" TIMESTAMP DEFAULT NULL
