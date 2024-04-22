@@ -122,18 +122,6 @@ export class User extends EntityHelper {
   @Column({ type: String, nullable: true })
   country: string;
 
-  @Column({ type: Number, nullable: true })
-  classify: number;
-
-  @Column({ type: Number, nullable: true })
-  genus: number;
-
-  @Column({ type: String, nullable: true })
-  religion: string;
-
-  @Column({ type: String, nullable: true })
-  literacy: string;
-
   @Column({ type: String, nullable: true })
   phone: string;
 
@@ -153,17 +141,21 @@ export class User extends EntityHelper {
     name: 'pids',
     array: true,
     transformer: {
-      to: (value: number[]) => value,
-      from: (value: string[]) => value.map(Number),
+      to: (value: number[] | null) => {
+        if (value === null) {
+          return null;
+        }
+        return value;
+      },
+      from: (value: string[] | null) => {
+        if (value === null) {
+          return null;
+        }
+        return value.map(Number);
+      },
     },
   })
-  partnerId: number[];
-
-  @Column({ type: String, nullable: true })
-  domicile: string;
-
-  @Column({ type: String, nullable: true })
-  resident: string;
+  partnerId: number[] | null;
 
   @Column({ type: String, nullable: true })
   description: string;
