@@ -131,9 +131,9 @@ export class ClanService {
         email: dto.email,
         roleCd: dto.roleCd,
         gender: dto.gender,
-        mid: dto.mid,
-        fid: dto.fid,
-        pids: dto.pids,
+        motherId: dto.motherId,
+        fatherId: dto.fatherId,
+        partnerId: dto.partnerId,
         name: getValueOrDefault(user.name, dto.name),
       };
 

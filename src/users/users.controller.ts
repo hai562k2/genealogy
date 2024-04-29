@@ -8,8 +8,6 @@ import {
   Delete,
   UseGuards,
   Query,
-  DefaultValuePipe,
-  ParseIntPipe,
   HttpStatus,
   HttpCode,
   SerializeOptions,
@@ -18,14 +16,12 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/roles/roles.decorator';
 import { RoleEnum } from 'src/roles/roles.enum';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from 'src/roles/roles.guard';
-import { infinityPagination } from 'src/utils/infinity-pagination';
 import { User } from './entities/user.entity';
-import { InfinityPaginationResultType } from '../utils/types/infinity-pagination-result.type';
 import { NullableType } from '../utils/types/nullable.type';
 import { CommonService } from 'src/utils/services/common.service';
 import { Request } from 'express';
@@ -33,6 +29,9 @@ import { ResponseHelper } from '../utils/helpers/response.helper';
 import { FileEntity } from 'src/files/entities/file.entity';
 import { isNotEmptyField } from 'src/utils';
 import { FilesService } from 'src/files/files.service';
+import { FilterUserDto } from './dto/filter-user.dto';
+import { BaseResponseDto } from 'src/utils/dto/base-response.dto';
+import { LisUserResponseType } from './type/list-user-response.type';
 
 @ApiBearerAuth()
 @Roles(RoleEnum.admin, RoleEnum.user)
@@ -63,21 +62,17 @@ export class UsersController {
   })
   @Get()
   @HttpCode(HttpStatus.OK)
-  async findAll(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-  ): Promise<InfinityPaginationResultType<User>> {
-    if (limit > 50) {
-      limit = 50;
-    }
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'keyword', required: false, type: String })
+  @ApiQuery({ name: 'id', required: false, type: Number })
+  @ApiQuery({ name: 'clanId', required: false, type: Number })
+  @ApiQuery({ name: 'memberId', required: false, type: Number })
+  async findAll(@Query() paginationDto: FilterUserDto): Promise<BaseResponseDto<LisUserResponseType>> {
+    paginationDto.page = Number(paginationDto.page);
+    paginationDto.limit = Number(paginationDto.limit);
 
-    return infinityPagination(
-      await this.usersService.findManyWithPagination({
-        page,
-        limit,
-      }),
-      { page, limit },
-    );
+    return await this.usersService.findManyWithPagination(paginationDto);
   }
 
   @SerializeOptions({

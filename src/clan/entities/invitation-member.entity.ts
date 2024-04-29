@@ -13,13 +13,22 @@ export class InvitationMember {
 
   @Column({ name: 'fid' })
   fatherId: number;
-
   @Column('bigint', {
     name: 'pids',
     array: true,
     transformer: {
-      to: (value: number[]) => value,
-      from: (value: string[]) => value.map(Number),
+      to: (value: number[] | null) => {
+        if (value === null) {
+          return null;
+        }
+        return value;
+      },
+      from: (value: string[] | null) => {
+        if (value === null) {
+          return null;
+        }
+        return value.map(Number);
+      },
     },
   })
   partnerId: number[];

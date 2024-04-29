@@ -1,18 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityCondition } from 'src/utils/types/entity-condition.type';
-import { IPaginationOptions } from 'src/utils/types/pagination-options';
-import { Brackets, DeepPartial, Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { NullableType } from '../utils/types/nullable.type';
 import { CommonService } from 'src/utils/services/common.service';
-import { AuthRegisterLoginDto } from 'src/auth/dto/auth-register-login.dto';
 import { EmailExistsDto } from 'src/auth/dto/email-exists.dto';
 import { RoleEnum } from 'src/roles/roles.enum';
 import { StatusEnum } from 'src/statuses/statuses.enum';
 import { User } from './entities/user.entity';
-import { AppConstant } from 'src/utils/app.constant';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { AuthRegisterNoOtpDto } from 'src/auth/dto/auth-register-no-otp.dto';
+import { FilterUserDto } from './dto/filter-user.dto';
+import { BaseResponseDto } from 'src/utils/dto/base-response.dto';
+import { LisUserResponseType } from './type/list-user-response.type';
 
 @Injectable()
 export class UsersService {
@@ -26,11 +27,27 @@ export class UsersService {
     return this.usersRepository.save(this.usersRepository.create(createProfileDto));
   }
 
-  findManyWithPagination(paginationOptions: IPaginationOptions): Promise<User[]> {
-    return this.usersRepository.find({
-      skip: (paginationOptions.page - 1) * paginationOptions.limit,
-      take: paginationOptions.limit,
-    });
+  async findManyWithPagination(paginationDto: FilterUserDto): Promise<BaseResponseDto<LisUserResponseType>> {
+    const queryUser = await this.usersRepository.createQueryBuilder('user');
+
+    if (paginationDto.keyword) {
+      queryUser.where('LOWER(user.name) LIKE :keyword', {
+        keyword: `%${paginationDto.keyword.toString().toLowerCase()}%`,
+      });
+    }
+
+    if (paginationDto.id) {
+      queryUser.andWhere('user.id = :id', {
+        id: paginationDto.id,
+      });
+    }
+
+    queryUser.leftJoinAndSelect('user.members', 'members').leftJoinAndSelect('members.clan', 'clan');
+    if (paginationDto.clanId) {
+      queryUser.andWhere('clan.id = :clanId', { clanId: paginationDto.clanId });
+    }
+
+    return this.commonService.getDataByPagination(paginationDto, queryUser);
   }
 
   findOne(fields: EntityCondition<User>): Promise<NullableType<User>> {
@@ -65,7 +82,7 @@ export class UsersService {
     });
   }
 
-  async registerNotOtp(dto: AuthRegisterLoginDto): Promise<User> {
+  async registerNotOtp(dto: AuthRegisterNoOtpDto): Promise<User> {
     return this.usersRepository.save(
       this.usersRepository.create({
         ...dto,

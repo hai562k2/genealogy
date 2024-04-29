@@ -23,20 +23,17 @@ export class InviteMemberDto {
     { rule: 'optional' },
     { rule: 'int', params: { validationOptions: { message: ErrorCodeEnum.MOTHER_ID_IS_INT } } },
   ])
-  mid: number;
+  motherId: number;
 
   @ApiProperty({ example: 1 })
   @ValidationDecorator([
     { rule: 'optional' },
     { rule: 'int', params: { validationOptions: { message: ErrorCodeEnum.FATHER_ID_IS_INT } } },
   ])
-  fid: number;
+  fatherId: number;
   @ApiProperty({ example: [1, 2] })
-  @ValidationDecorator([
-    { rule: 'optional' },
-    { rule: 'int', params: { validationOptions: { message: ErrorCodeEnum.PARTNER_ID_IS_INT } } },
-  ])
-  pids: number[];
+  @ValidationDecorator([{ rule: 'optional' }, { rule: 'array' }])
+  partnerId: number[];
 
   @ApiProperty({ example: 'male' })
   @ValidationDecorator([
@@ -58,13 +55,10 @@ export class InviteMemberDto {
     {
       rule: 'isIn',
       params: {
-        value: [AppConstant.MALE, AppConstant.FEMALE],
+        value: [AppConstant.ROLE_ADMIN, AppConstant.ROLE_OWNER],
         validationOptions: { message: ErrorCodeEnum.INVALID_ROLE_CD },
       },
     },
-  ])
-  @ValidationDecorator([
-    { rule: 'required', params: { validationOptions: { message: ErrorCodeEnum.ROLE_CD_REQUIRED } } },
   ])
   roleCd: number;
 }
