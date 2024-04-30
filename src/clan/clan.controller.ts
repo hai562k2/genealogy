@@ -47,6 +47,8 @@ import { CreatePayResponseType } from './types/create-pay-response.type';
 import { UpdatePayDto } from './dto/update-pay.dto';
 import { ResponseHelper } from 'src/utils/helpers/response.helper';
 import { InviteMemberDto } from './dto/invite-member.dto';
+import { ActiveMemberDto } from './dto/active-member.dto';
+import { InvitationMember } from './entities/invitation-member.entity';
 
 @ApiTags('Clan')
 @Controller({
@@ -128,6 +130,17 @@ export class ClanController {
     const account = request.user;
 
     return this.collectMoneyService.findManyWithPagination(paginationDto, account.id);
+  }
+
+  @ApiBearerAuth()
+  @Roles(RoleEnum.admin, RoleEnum.user)
+  @SerializeOptions({
+    groups: ['admin'],
+  })
+  @Get('read-invitation-token')
+  @ApiQuery({ name: 'token', required: false, type: String })
+  async getInfoUuid(@Query() token: ActiveMemberDto): Promise<BaseResponseDto<Readonly<InvitationMember>>> {
+    return await this.clanService.readUuidInvite(token);
   }
 
   @ApiBearerAuth()

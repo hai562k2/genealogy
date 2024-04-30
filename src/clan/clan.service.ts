@@ -21,6 +21,8 @@ import { CreateMemberDto } from './dto/create-member.dto';
 import { StatusEnum } from 'src/statuses/statuses.enum';
 import { MailService } from 'src/mail/mail.service';
 import { ConfigService } from '@nestjs/config';
+import { ActiveMemberDto } from './dto/active-member.dto';
+import { CreateInvitationMemberType } from './types/invitation-member.type';
 
 @Injectable()
 export class ClanService {
@@ -232,5 +234,18 @@ export class ClanService {
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
+  }
+
+  async readUuidInvite(dto: ActiveMemberDto): Promise<BaseResponseDto<CreateInvitationMemberType>> {
+    const uuidInvite = await this.inviteMemberService.findOne({ id: dto.token });
+    if (!uuidInvite) {
+      throw new ApiException(
+        {
+          message: ErrorCodeEnum.TOKEN_NOT_EXISTS,
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+    return ResponseHelper.success(uuidInvite);
   }
 }
