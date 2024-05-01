@@ -188,6 +188,17 @@ export class ClanController {
   @ApiBearerAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
   @SerializeOptions({
+    groups: ['detail'],
+  })
+  @Get('role-member/:id')
+  @HttpCode(HttpStatus.OK)
+  async getRoleMember(@Param('id') id: number, @Req() request): Promise<BaseResponseDto<CreateMemberResponseType>> {
+    return await this.membersService.findOne({ userId: request.user.id, clanId: id });
+  }
+
+  @ApiBearerAuth()
+  @Roles(RoleEnum.admin, RoleEnum.user)
+  @SerializeOptions({
     groups: ['admin'],
   })
   @Patch(':id')
