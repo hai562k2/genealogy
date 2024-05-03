@@ -49,6 +49,7 @@ import { ResponseHelper } from 'src/utils/helpers/response.helper';
 import { InviteMemberDto } from './dto/invite-member.dto';
 import { ActiveMemberDto } from './dto/active-member.dto';
 import { InvitationMember } from './entities/invitation-member.entity';
+import { UpdateClanDto } from './dto/update-clan.dto';
 
 @ApiTags('Clan')
 @Controller({
@@ -85,12 +86,7 @@ export class ClanController {
       ...createClanDto,
       ...{ createdBy: account.id },
       ...{
-        images: images.map((image) => {
-          return {
-            path: image.path,
-            name: image.name,
-          };
-        }),
+        images: images.map((image) => image.path),
       },
     });
 
@@ -205,9 +201,18 @@ export class ClanController {
   @HttpCode(HttpStatus.OK)
   async update(
     @Param('id') id: number,
-    @Body() updateClanDto: CreateClanDto,
+    @Body() updateClanDto: UpdateClanDto,
   ): Promise<BaseResponseDto<CreateClanResponseType>> {
-    return await this.clanService.update(id, updateClanDto);
+    let images: FileEntity[] = [];
+    if (isNotEmptyField(updateClanDto.image)) {
+      images = await this.filesService.findAllByPath(updateClanDto.image);
+    }
+    return await this.clanService.update(id, {
+      ...updateClanDto,
+      ...{
+        images: images.map((image) => image.path),
+      },
+    });
   }
 
   @ApiBearerAuth()

@@ -1,7 +1,7 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Clan } from './entities/clan.entity';
-import { DeepPartial, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { CreateClanDto } from './dto/create-clan.dto';
 import { BaseResponseDto } from 'src/utils/dto/base-response.dto';
 import { ResponseHelper } from 'src/utils/helpers/response.helper';
@@ -23,6 +23,7 @@ import { MailService } from 'src/mail/mail.service';
 import { ConfigService } from '@nestjs/config';
 import { ActiveMemberDto } from './dto/active-member.dto';
 import { CreateInvitationMemberType } from './types/invitation-member.type';
+import { UpdateClanDto } from './dto/update-clan.dto';
 
 @Injectable()
 export class ClanService {
@@ -64,6 +65,7 @@ export class ClanService {
     queryClan.andWhere('members.user_id = :memberId', {
       memberId: userId,
     });
+    queryClan.orderBy('Clan.createdAt', 'DESC');
 
     return this.commonService.getDataByPagination(paginationDto, queryClan);
   }
@@ -88,7 +90,7 @@ export class ClanService {
     return ResponseHelper.success(clan);
   }
 
-  async update(id: Clan['id'], payload: DeepPartial<Clan>): Promise<BaseResponseDto<CreateClanResponseType>> {
+  async update(id: Clan['id'], payload: UpdateClanDto): Promise<BaseResponseDto<CreateClanResponseType>> {
     const clan = await this.clanRepository.save(
       this.clanRepository.create({
         id,
