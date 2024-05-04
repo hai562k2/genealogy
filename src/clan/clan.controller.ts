@@ -173,7 +173,7 @@ export class ClanController {
   @ApiBearerAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
   @SerializeOptions({
-    groups: ['detail'],
+    groups: ['admin'],
   })
   @Get(':id')
   @HttpCode(HttpStatus.OK)

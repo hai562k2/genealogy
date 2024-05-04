@@ -1,4 +1,4 @@
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude } from 'class-transformer';
 import { EventEntity } from 'src/event/entities/event.entity';
 import { BaseEntity } from 'src/utils/entity/base.entity';
 import {
@@ -31,7 +31,6 @@ export class Clan extends BaseEntity {
   createdBy: number;
 
   @Column({ type: String, nullable: true })
-  @Expose({ groups: ['admin'] })
   image: string;
 
   @Exclude()
