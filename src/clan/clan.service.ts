@@ -107,8 +107,9 @@ export class ClanService {
 
   async inviteMember(dto: InviteMemberDto, clanId: number): Promise<void> {
     let user = await this.usersService.checkEmailMemberExists(dto);
+
     if (!user) {
-      user = await this.usersService.registerNotOtp(dto);
+      user = await this.usersService.registerNotOtp({ ...dto });
     } else {
       const emailInClan = await this.membersService.isEmailInClan(dto.email, clanId);
       const deletedMember = await this.membersService.isEmailInDeletedMembers(user.id, clanId);
@@ -163,7 +164,7 @@ export class ClanService {
         data: {
           hash: `${this.configService.get('app.urlInvite', { infer: true })}/${memberInvite?.id}`,
           userName: dataInvite.name,
-          organizationName: dataInvite.clanName,
+          clanName: dataInvite.clanName,
         },
       });
     }

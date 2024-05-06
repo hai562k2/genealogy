@@ -131,11 +131,17 @@ export class User extends EntityHelper {
   @Column({ name: 'wor_address', type: String, nullable: true })
   workAddress: string;
 
-  @Column({ type: String, name: 'fid', nullable: true })
+  @Column({ name: 'fid', nullable: true })
   fatherId: number;
 
-  @Column({ type: String, name: 'mid', nullable: true })
+  @Column({ name: 'father_name' })
+  fatherName: string;
+
+  @Column({ name: 'mid', nullable: true })
   motherId: number;
+
+  @Column({ name: 'mother_name' })
+  motherName: string;
 
   @Column('bigint', {
     name: 'pids',

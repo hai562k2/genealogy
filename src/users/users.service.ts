@@ -14,6 +14,7 @@ import { AuthRegisterNoOtpDto } from 'src/auth/dto/auth-register-no-otp.dto';
 import { FilterUserDto } from './dto/filter-user.dto';
 import { BaseResponseDto } from 'src/utils/dto/base-response.dto';
 import { LisUserResponseType } from './type/list-user-response.type';
+import { getValueOrDefault } from 'src/utils';
 
 @Injectable()
 export class UsersService {
@@ -83,9 +84,18 @@ export class UsersService {
   }
 
   async registerNotOtp(dto: AuthRegisterNoOtpDto): Promise<User> {
+    const mid = getValueOrDefault(dto.motherId, 0);
+    const fid = getValueOrDefault(dto.fatherId, 0);
+    const mother = await this.findOne({ id: mid });
+    const father = await this.findOne({ id: fid });
+    const fatherName = getValueOrDefault(father?.name, 'No data');
+    const motherName = getValueOrDefault(mother?.name, 'No data');
+
     return this.usersRepository.save(
       this.usersRepository.create({
         ...dto,
+        fatherName: fatherName,
+        motherName: motherName,
         email: dto.email,
         role: {
           id: RoleEnum.user,

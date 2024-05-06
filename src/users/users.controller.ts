@@ -27,7 +27,7 @@ import { CommonService } from 'src/utils/services/common.service';
 import { Request } from 'express';
 import { ResponseHelper } from '../utils/helpers/response.helper';
 import { FileEntity } from 'src/files/entities/file.entity';
-import { isNotEmptyField } from 'src/utils';
+import { getValueOrDefault, isNotEmptyField } from 'src/utils';
 import { FilesService } from 'src/files/files.service';
 import { FilterUserDto } from './dto/filter-user.dto';
 import { BaseResponseDto } from 'src/utils/dto/base-response.dto';
@@ -92,8 +92,18 @@ export class UsersController {
       images = await this.filesService.findAllByPath(updateProfileDto.image);
     }
 
+    const mid = getValueOrDefault(updateProfileDto.motherId, 0);
+    const fid = getValueOrDefault(updateProfileDto.fatherId, 0);
+
+    const father = await this.usersService.findOne({ id: fid });
+    const mother = await this.usersService.findOne({ id: mid });
+
+    const fatherName = getValueOrDefault(father?.name, 'No data');
+    const motherName = getValueOrDefault(mother?.name, 'No data');
+
     const updateUser = await this.usersService.editAccount(accountId, {
       ...updateProfileDto,
+      ...{ fatherName: fatherName, motherName: motherName },
       ...{
         images: images.map((image) => image.path),
       },
