@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityCondition } from 'src/utils/types/entity-condition.type';
 import { DeepPartial, Repository } from 'typeorm';
@@ -15,6 +15,8 @@ import { FilterUserDto } from './dto/filter-user.dto';
 import { BaseResponseDto } from 'src/utils/dto/base-response.dto';
 import { LisUserResponseType } from './type/list-user-response.type';
 import { getValueOrDefault } from 'src/utils';
+import { ApiException } from 'src/utils/exceptions/api.exception';
+import { ErrorCodeEnum } from 'src/utils/error-code.enum';
 
 @Injectable()
 export class UsersService {
@@ -112,6 +114,19 @@ export class UsersService {
   }
 
   async softDelete(id: User['id']): Promise<void> {
+    const childFather = await this.findOne({ fatherId: id });
+    const childMother = await this.findOne({ motherId: id });
+    if (childFather != null || childMother != null) {
+      throw new ApiException(
+        {
+          id: ErrorCodeEnum.NODE_PARENT,
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+        {
+          id: id,
+        },
+      );
+    }
     await this.usersRepository.softDelete(id);
   }
 }

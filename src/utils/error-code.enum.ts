@@ -43,5 +43,6 @@ export enum ErrorCodeEnum {
   'FATHER_ID_IS_INT' = 'EA0042',
   'PARTNER_ID_IS_INT' = 'EA0043',
   'UUID_INVALID' = 'EA0044',
+  'NODE_PARENT' = 'EA0045',
   'SYSTEM_ERROR' = 'EA9999',
 }
