@@ -32,6 +32,7 @@ import { FilesService } from 'src/files/files.service';
 import { FilterUserDto } from './dto/filter-user.dto';
 import { BaseResponseDto } from 'src/utils/dto/base-response.dto';
 import { LisUserResponseType } from './type/list-user-response.type';
+import { GetUsersResponseType } from './type/get-users-response.type';
 
 @ApiBearerAuth()
 @Roles(RoleEnum.admin, RoleEnum.user)
@@ -55,6 +56,13 @@ export class UsersController {
   @HttpCode(HttpStatus.CREATED)
   create(@Body() createProfileDto: CreateUserDto): Promise<User> {
     return this.usersService.create(createProfileDto);
+  }
+
+  @Get(':clanId')
+  @HttpCode(HttpStatus.OK)
+  async getAll(@Param('clanId') clanId: number): Promise<BaseResponseDto<GetUsersResponseType>> {
+    const users = await this.usersService.getAllUser(+clanId);
+    return ResponseHelper.success(users);
   }
 
   @SerializeOptions({

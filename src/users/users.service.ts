@@ -53,6 +53,16 @@ export class UsersService {
     return this.commonService.getDataByPagination(paginationDto, queryUser);
   }
 
+  async getAllUser(clanId: number): Promise<User[]> {
+    const users = await this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.members', 'members')
+      .leftJoinAndSelect('members.clan', 'clan')
+      .where('clan.id = :clanId', { clanId: clanId })
+      .getMany();
+    return users;
+  }
+
   findOne(fields: EntityCondition<User>): Promise<NullableType<User>> {
     return this.usersRepository.findOne({
       where: fields,
