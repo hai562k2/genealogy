@@ -26,6 +26,7 @@ export class MemberService {
   async findOne(fields: EntityCondition<Member>): Promise<BaseResponseDto<CreateMemberResponseType>> {
     const member = await this.memberRepository.findOne({
       where: fields,
+      relations: ['members'],
     });
 
     if (!member) {

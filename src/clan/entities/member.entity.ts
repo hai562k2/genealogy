@@ -21,7 +21,7 @@ export class Member extends BaseEntity {
   @JoinColumn({ name: 'clan_id' })
   clan: Clan;
 
-  @ManyToOne((_type) => User, (user) => user.members)
+  @ManyToOne((_type) => User, (user) => user.members, { lazy: true })
   @JoinColumn({ name: 'user_id' })
   members: User;
 }

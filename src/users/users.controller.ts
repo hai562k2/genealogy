@@ -58,7 +58,7 @@ export class UsersController {
     return this.usersService.create(createProfileDto);
   }
 
-  @Get(':clanId')
+  @Get('all/:clanId')
   @HttpCode(HttpStatus.OK)
   async getAll(@Param('clanId') clanId: number): Promise<BaseResponseDto<GetUsersResponseType>> {
     const users = await this.usersService.getAllUser(+clanId);

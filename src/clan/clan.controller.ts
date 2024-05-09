@@ -50,6 +50,7 @@ import { InviteMemberDto } from './dto/invite-member.dto';
 import { ActiveMemberDto } from './dto/active-member.dto';
 import { InvitationMember } from './entities/invitation-member.entity';
 import { UpdateClanDto } from './dto/update-clan.dto';
+import { FilterMemberDto } from './dto/filter-member.dto';
 
 @ApiTags('Clan')
 @Controller({
@@ -184,12 +185,12 @@ export class ClanController {
   @ApiBearerAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
   @SerializeOptions({
-    groups: ['detail'],
+    groups: ['admin'],
   })
-  @Get('role-member/:id')
+  @Get('role-member/user')
   @HttpCode(HttpStatus.OK)
-  async getRoleMember(@Param('id') id: number, @Req() request): Promise<BaseResponseDto<CreateMemberResponseType>> {
-    return await this.membersService.findOne({ userId: request.user.id, clanId: id });
+  async getRoleMember(@Query() filterDto: FilterMemberDto): Promise<BaseResponseDto<CreateMemberResponseType>> {
+    return await this.membersService.findOne({ userId: +filterDto.userId, clanId: +filterDto.clanId });
   }
 
   @ApiBearerAuth()
