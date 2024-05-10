@@ -88,8 +88,9 @@ export class UsersController {
   })
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  findOne(@Param('id') id: number): Promise<NullableType<User>> {
-    return this.usersService.findOne({ id: id });
+  async findOne(@Param('id') id: number): Promise<BaseResponseDto<NullableType<User>>> {
+    const user = await this.usersService.findOne({ id: id });
+    return ResponseHelper.success(user);
   }
 
   @Patch(':id')
