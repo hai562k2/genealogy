@@ -52,6 +52,7 @@ import { InvitationMember } from './entities/invitation-member.entity';
 import { UpdateClanDto } from './dto/update-clan.dto';
 import { FilterMemberDto } from './dto/filter-member.dto';
 import { UpdateRoleMemberDto } from './dto/update-role-member.dto';
+import { RemoveMemberDto } from './dto/remove-member.dto';
 
 @ApiTags('Clan')
 @Controller({
@@ -260,17 +261,13 @@ export class ClanController {
 
   @ApiBearerAuth()
   @Roles(RoleEnum.admin, RoleEnum.user)
-  @Delete(':id/members/:member_id')
+  @Delete('clan/remove/member')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async removeMembersByOrganization(
-    @Param('id') id: number,
-    @Param('member_id') memberId: number,
-    @Req() request,
-  ): Promise<void> {
+  async removeMembersByOrganization(@Query() removeMember: RemoveMemberDto, @Req() request): Promise<void> {
     const account = request.user;
 
     const member = await this.membersService.findOne({
-      clanId: +id,
+      clanId: +removeMember.id,
       userId: account.id,
     });
 
@@ -281,14 +278,14 @@ export class ClanController {
         },
         HttpStatus.UNPROCESSABLE_ENTITY,
         {
-          id: id,
+          id: removeMember.id,
         },
       );
     }
 
     const memberOwner = await this.membersService.findOne({
-      clanId: id,
-      userId: memberId,
+      clanId: removeMember.id,
+      userId: removeMember.userId,
     });
 
     if (isOwner(memberOwner?.data?.roleCd)) {
@@ -298,12 +295,12 @@ export class ClanController {
         },
         HttpStatus.UNPROCESSABLE_ENTITY,
         {
-          id: id,
+          id: removeMember.id,
         },
       );
     }
 
-    return this.membersService.removeMember(id, memberId);
+    return this.membersService.removeMember(removeMember.id, removeMember.userId);
   }
 
   @ApiBearerAuth()
@@ -561,7 +558,7 @@ export class ClanController {
   @Roles(RoleEnum.admin, RoleEnum.user)
   @HttpCode(HttpStatus.OK)
   @Patch('member/profile')
-  async updateMember(@Query() updateRoleMemberDto: UpdateRoleMemberDto, @Req() request): Promise<void> {
+  async updateMember(@Body() updateRoleMemberDto: UpdateRoleMemberDto, @Req() request): Promise<void> {
     const account = request.user;
     const member = await this.membersService.findOne({
       userId: updateRoleMemberDto.userId,

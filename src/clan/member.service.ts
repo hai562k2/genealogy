@@ -55,10 +55,10 @@ export class MemberService {
     return ResponseHelper.success(member);
   }
 
-  async removeMember(id: Clan['id'], memberId: Member['id']): Promise<void> {
+  async removeMember(clanId: Clan['id'], userId: number): Promise<void> {
     await this.memberRepository.softDelete({
-      clanId: id,
-      userId: memberId,
+      clanId: clanId,
+      userId: userId,
     });
   }
 
