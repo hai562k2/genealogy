@@ -51,6 +51,7 @@ import { ActiveMemberDto } from './dto/active-member.dto';
 import { InvitationMember } from './entities/invitation-member.entity';
 import { UpdateClanDto } from './dto/update-clan.dto';
 import { FilterMemberDto } from './dto/filter-member.dto';
+import { UpdateRoleMemberDto } from './dto/update-role-member.dto';
 
 @ApiTags('Clan')
 @Controller({
@@ -191,6 +192,20 @@ export class ClanController {
   @HttpCode(HttpStatus.OK)
   async getRoleMember(@Query() filterDto: FilterMemberDto): Promise<BaseResponseDto<CreateMemberResponseType>> {
     return await this.membersService.findOne({ userId: +filterDto.userId, clanId: +filterDto.clanId });
+  }
+
+  @ApiBearerAuth()
+  @Roles(RoleEnum.admin, RoleEnum.user)
+  @SerializeOptions({
+    groups: ['admin'],
+  })
+  @Get('role-member/:clanId')
+  @HttpCode(HttpStatus.OK)
+  async getRoleCurenUserMember(
+    @Param('clanId') clanId: number,
+    @Req() request,
+  ): Promise<BaseResponseDto<CreateMemberResponseType>> {
+    return await this.membersService.findOne({ userId: request.user.id, clanId: clanId });
   }
 
   @ApiBearerAuth()
@@ -540,5 +555,19 @@ export class ClanController {
   @Delete('pay/:payId')
   async removePay(@Param('payId') payId: number): Promise<void> {
     await this.payService.softDelete(payId);
+  }
+
+  @ApiBearerAuth()
+  @Roles(RoleEnum.admin, RoleEnum.user)
+  @HttpCode(HttpStatus.OK)
+  @Patch('member/profile')
+  async updateMember(@Query() updateRoleMemberDto: UpdateRoleMemberDto, @Req() request): Promise<void> {
+    const account = request.user;
+    const member = await this.membersService.findOne({
+      userId: updateRoleMemberDto.userId,
+      clanId: updateRoleMemberDto.clanId,
+    });
+    await this.clanService.validateRoleMember(account.id, getValueOrDefault(updateRoleMemberDto.clanId, 0));
+    await this.membersService.update(getValueOrDefault(member.data?.id, 0), { roleCd: updateRoleMemberDto.roleCd });
   }
 }
