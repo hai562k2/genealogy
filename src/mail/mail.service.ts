@@ -138,6 +138,9 @@ export class MailService {
   }
 
   async inviteEmail(mailData: MailData<{ hash: string; userName: string; clanName: string }>): Promise<void> {
+    const url = this.configService.getOrThrow('app.urlInvite', {
+      infer: true,
+    });
     const i18n = I18nContext.current();
     let inviteEmailTitle: MaybeType<string>;
     let header: MaybeType<string>;
@@ -168,7 +171,7 @@ export class MailService {
       ),
       context: {
         title: inviteEmailTitle,
-        url: `${mailData.data.hash}`,
+        url: url,
         userName: mailData.data.userName,
         clanName: mailData.data.clanName,
         actionTitle: inviteEmailTitle,
