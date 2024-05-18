@@ -52,7 +52,7 @@ export class EventService {
   }
 
   async findOne(fields: EntityCondition<EventEntity>): Promise<BaseResponseDto<CreateEventResponseType>> {
-    const event = await this.eventRepository.findOne({ where: fields });
+    const event = await this.eventRepository.findOne({ where: fields, relations: ['comments'] });
 
     if (!event) {
       throw new ApiException(
