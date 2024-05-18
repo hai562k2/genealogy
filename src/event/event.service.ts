@@ -52,11 +52,7 @@ export class EventService {
   }
 
   async findOne(fields: EntityCondition<EventEntity>): Promise<BaseResponseDto<CreateEventResponseType>> {
-    const queryEvent = this.eventRepository.createQueryBuilder('event');
-    queryEvent.leftJoinAndSelect('event.comments', 'comments');
-    queryEvent.leftJoinAndSelect('event.clan', 'clan');
-
-    const event = await queryEvent.getOne();
+    const event = await this.eventRepository.findOne({ where: fields });
 
     if (!event) {
       throw new ApiException(

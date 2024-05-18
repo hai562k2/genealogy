@@ -32,6 +32,8 @@ import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from 'src/roles/roles.guard';
 import { Roles } from 'src/roles/roles.decorator';
 import { RoleEnum } from 'src/roles/roles.enum';
+import { ListEventCommentResponseType } from './types/list-event-commment-responsetype';
+import { ResponseHelper } from 'src/utils/helpers/response.helper';
 
 @ApiTags('Event')
 @Controller({
@@ -184,5 +186,12 @@ export class EventController {
     });
 
     return eventComment;
+  }
+
+  @Get('event-comment/:eventId')
+  @HttpCode(HttpStatus.OK)
+  async findAllEventComment(@Param('eventId') eventId: number): Promise<BaseResponseDto<ListEventCommentResponseType>> {
+    const eventComments = await this.eventCommentService.findByEvent(eventId);
+    return ResponseHelper.success(eventComments);
   }
 }
