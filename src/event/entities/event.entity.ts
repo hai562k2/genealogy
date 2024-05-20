@@ -24,6 +24,9 @@ export class EventEntity extends BaseEntity {
   @Column({ name: 'created_by' })
   createdBy: number;
 
+  @Column({ name: 'title' })
+  title: string;
+
   @Column()
   content: string;
 
@@ -47,6 +50,10 @@ export class EventEntity extends BaseEntity {
   @OneToOne((_type) => User, (user) => user.event)
   @JoinColumn({ name: 'created_by' })
   user: User;
+
+  @OneToOne((_type) => User, (user) => user.eventComment)
+  @JoinColumn({ name: 'created_by' })
+  users: User;
 
   @BeforeInsert()
   @BeforeUpdate()

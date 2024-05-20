@@ -8,6 +8,10 @@ export class UpdateEventDto {
   @ValidationDecorator([{ rule: 'optional' }])
   content: string;
 
+  @ApiProperty({ example: 'Title' })
+  @ValidationDecorator([{ rule: 'optional' }])
+  title: string;
+
   @ApiProperty({ type: [] })
   @ValidationDecorator([{ rule: 'optional' }])
   image?: string;

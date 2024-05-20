@@ -25,6 +25,7 @@ import { getValueOrDefault } from 'src/utils';
 import { Member } from 'src/clan/entities/member.entity';
 import { EventEntity } from 'src/event/entities/event.entity';
 import { CollectMoney } from 'src/clan/entities/collect-money.entity';
+import { EventComment } from 'src/event/entities/event-comment.entity';
 
 @Entity()
 export class User extends EntityHelper {
@@ -197,6 +198,12 @@ export class User extends EntityHelper {
     eager: false,
   })
   event: EventEntity;
+
+  @Expose({ groups: ['login'] })
+  @OneToOne((_type) => EventComment, (eventComment) => eventComment.user, {
+    eager: false,
+  })
+  eventComment: EventComment;
 
   @OneToOne(() => CollectMoney, (collectMoney) => collectMoney.user)
   collectMoney: CollectMoney;

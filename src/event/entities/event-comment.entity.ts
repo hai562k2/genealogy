@@ -10,8 +10,10 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
 } from 'typeorm';
 import { EventEntity } from './event.entity';
+import { User } from 'src/users/entities/user.entity';
 
 @Entity({ name: 'event_comment' })
 export class EventComment extends BaseEntity {
@@ -34,6 +36,10 @@ export class EventComment extends BaseEntity {
   @ManyToOne((_type) => EventEntity, (event) => event.comments)
   @JoinColumn({ name: 'event_id' })
   event: EventEntity;
+
+  @OneToOne((_type) => User, (user) => user.event)
+  @JoinColumn({ name: 'created_by' })
+  user: User;
 
   @BeforeInsert()
   @BeforeUpdate()

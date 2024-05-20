@@ -11,6 +11,10 @@ export class CreateEventDto {
   ])
   clanId: number;
 
+  @ApiProperty({ example: 'Title' })
+  @ValidationDecorator([{ rule: 'optional' }])
+  title?: string;
+
   @ApiProperty({ example: 'Content' })
   @ValidationDecorator([
     { rule: 'required', params: { validationOptions: { message: ErrorCodeEnum.CONTENT_IS_REQUIRED } } },

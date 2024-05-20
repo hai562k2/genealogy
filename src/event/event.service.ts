@@ -52,7 +52,7 @@ export class EventService {
   }
 
   async findOne(fields: EntityCondition<EventEntity>): Promise<BaseResponseDto<CreateEventResponseType>> {
-    const event = await this.eventRepository.findOne({ where: fields, relations: ['comments'] });
+    const event = await this.eventRepository.findOne({ where: fields, relations: ['comments', 'user'] });
 
     if (!event) {
       throw new ApiException(
@@ -62,6 +62,29 @@ export class EventService {
         HttpStatus.UNPROCESSABLE_ENTITY,
         {
           id: fields.id,
+        },
+      );
+    }
+
+    return ResponseHelper.success(event);
+  }
+
+  async findOneJoin(id: number): Promise<BaseResponseDto<CreateEventResponseType>> {
+    const event = await this.eventRepository
+      .createQueryBuilder('event')
+      .where('event.id = :id', { id })
+      .leftJoinAndSelect('event.comments', 'comments')
+      .leftJoinAndSelect('event.user', 'users')
+      .leftJoinAndSelect('comments.user', 'user')
+      .getOne();
+    if (!event) {
+      throw new ApiException(
+        {
+          id: ErrorCodeEnum.EVENT_NOT_FOUND,
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+        {
+          id: id,
         },
       );
     }

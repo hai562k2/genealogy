@@ -71,7 +71,7 @@ export class EventController {
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   async findOne(@Param('id') id: number): Promise<BaseResponseDto<CreateEventResponseType>> {
-    const event = await this.eventService.findOne({ id });
+    const event = await this.eventService.findOneJoin(id);
     return event;
   }
 
@@ -94,12 +94,7 @@ export class EventController {
       ...createEventDto,
       ...{ createdBy: account.id },
       ...{
-        images: images.map((image) => {
-          return {
-            path: image.path,
-            name: image.name,
-          };
-        }),
+        images: images.map((image) => image.path),
       },
     });
 
@@ -130,12 +125,7 @@ export class EventController {
     const questionUpdate = await this.eventService.update(id, {
       ...updateEventDto,
       ...{
-        images: images.map((image) => {
-          return {
-            path: image.path,
-            name: image.name,
-          };
-        }),
+        images: images.map((image) => image.path),
       },
     });
 
