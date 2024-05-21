@@ -35,6 +35,7 @@ export class EventService {
     queryEvent.leftJoinAndSelect('Event.user', 'user');
     queryEvent.leftJoin('clan.members', 'member');
     queryEvent.andWhere('member.user_id = :userId', { userId });
+    queryEvent.orderBy('Event.createdAt', 'DESC');
 
     if (paginationDto.keyword) {
       queryEvent.where('LOWER(Event.content) LIKE :keyword', {
